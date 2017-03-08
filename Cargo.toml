@@ -1,0 +1,6 @@
+[package]
+name = "genetic-algorithm-rust"
+version = "0.1.0"
+authors = ["Zuchis <liquimaster@gmail.com>"]
+
+[dependencies]
