@@ -1,6 +1,6 @@
 extern crate rand;
 
-// use rand::Rng;
+use rand::Rng;
 use rand::distributions::{IndependentSample, Range};
 use std::env;
 use std::process;
@@ -10,12 +10,23 @@ struct Population<T> {
     pop_size: u64,
     ind_size: u64,
     individuals: Vec<T>,
-    lower_bound: T,
-    upper_bound: T,
+    lower_bound: f64,
+    upper_bound: f64,
 }
 
 #[allow(dead_code)]
 impl<T> Population<T> {
+
+    fn new(pop_size_: u64, ind_size_: u64, lb: f64, ub: f64) -> Population<T> {
+        Population::<T> {
+            pop_size: pop_size_,
+            ind_size: ind_size_,
+            lower_bound: lb,
+            upper_bound: ub,
+            individuals: Vec::new(),
+        }
+    }
+
     fn access(&self, i: u64, j: u64) -> &T {
         &self.individuals[(i + (j * self.ind_size)) as usize]
     }
@@ -27,9 +38,12 @@ impl<T> Population<T> {
 
 #[allow(dead_code)]
 impl Population<i64> {
+
     fn initialize(&mut self) {
-        let between = Range::new(self.lower_bound, self.upper_bound);
+        self.individuals = vec![0; (self.pop_size * self.ind_size) as usize];
+        let between = Range::new(self.lower_bound.floor() as i64, self.upper_bound.floor() as i64);
         let mut rng = rand::thread_rng();
+
         for i in 0..self.pop_size {
             for j in 0..self.ind_size {
                 let value: i64 = between.ind_sample(&mut rng);
@@ -51,6 +65,7 @@ impl Population<i64> {
 #[allow(dead_code)]
 impl Population<f64> {
     fn initialize(&mut self) {
+        self.individuals = vec![0.0; (self.pop_size * self.ind_size) as usize];
         let between = Range::new(self.lower_bound, self.upper_bound);
         let mut rng = rand::thread_rng();
         for i in 0..self.pop_size {
@@ -72,13 +87,13 @@ impl Population<f64> {
 }
 
 #[allow(dead_code)]
-impl Population<u8> {
+impl Population<bool> {
     fn initialize(&mut self) {
-        let between = Range::new(self.lower_bound, self.upper_bound);
+        self.individuals = vec![false; (self.pop_size * self.ind_size) as usize];
         let mut rng = rand::thread_rng();
         for i in 0..self.pop_size {
             for j in 0..self.ind_size {
-                let value: u8 = between.ind_sample(&mut rng);
+                let value: bool = rng.gen::<bool>();
                 self.set(i, j, value);
             }
         }
@@ -106,44 +121,7 @@ fn main() {
             process::exit(0);
 
         }
-        4 | 6 => { // If you got in here, you are on the right neighborhood m8
-            let pop_size_: u64 = args[2].trim().parse()
-                .expect("Not a valid number");
-
-            let ind_size_: u64 = args[3].trim().parse()
-                .expect("Not a valid number");
-
-            match args[1].to_uppercase().as_ref() {
-                "INT" => {
-                    let l_bound: i64 = args[4].trim().parse()
-                        .expect("Not a valid number");
-                    let u_bound: i64 = args[5].trim().parse()
-                        .expect("Not a valid number");
-
-                    let mut population: Population<i64> = Population {pop_size: pop_size_, ind_size: ind_size_, individuals: vec![0; (pop_size_ * ind_size_) as usize], lower_bound: l_bound, upper_bound: u_bound};
-                    population.initialize();
-                    population.print();
-                }
-                "FLOAT" => {
-                    let l_bound: f64 = args[4].trim().parse()
-                        .expect("Not a valid number");
-                    let u_bound: f64 = args[5].trim().parse()
-                        .expect("Not a valid number");
-                    let mut population: Population<f64> = Population {pop_size: pop_size_, ind_size: ind_size_, individuals: vec![0.0; (pop_size_ * ind_size_) as usize], lower_bound: l_bound, upper_bound: u_bound};
-                    population.initialize();
-                    population.print();
-                }
-                "BIN" => {
-                    let mut population: Population<u8> = Population {pop_size: pop_size_, ind_size: ind_size_, individuals: vec![0; (pop_size_ * ind_size_) as usize], lower_bound: 0, upper_bound: 2};
-                    population.initialize();
-                    population.print();
-                }
-                _ => {
-                    println!("Not a valid gene type");
-                    process::exit(0);
-                }
-
-            }
+        4 | 6 => {
         }
         5 => {
             println!("You have to pass both the lower bound and the upper bound");
@@ -154,4 +132,33 @@ fn main() {
             process::exit(0);
         }
     }
+
+    let pop_size_: u64 = args[2].trim().parse()
+        .expect("Not a valid number");
+
+    let ind_size_: u64 = args[3].trim().parse()
+        .expect("Not a valid number");
+
+    let l_bound_: f64 = if args.len() == 6 {
+        args[4].trim().parse()
+            .expect("lul")
+    } else { 0.0 as f64 };
+
+    let u_bound_: f64 = if args.len() == 6 {
+        args[5].trim().parse()
+            .expect("lul")
+    } else { 0.0 as f64 };
+
+    // let mut population = Population::<i64>::new(pop_size_,ind_size_,l_bound_,u_bound_);
+    // let mut population = Population::<f64>::new(pop_size_,ind_size_,l_bound_,u_bound_);
+    let mut population = Population::<bool>::new(pop_size_,ind_size_,l_bound_,u_bound_);
+
+    population.initialize();
+    population.print();
+
+    // let mut population = match args[1].to_uppercase().as_ref() {
+    //     "INT"   => Population::<i64>::new(pop_size_,ind_size_,l_bound_,u_bound_),
+    //     "FLOAT" => Population::<f64>::new(pop_size_,ind_size_,l_bound_,u_bound_),
+    //       _     => Population::<bool>::new(pop_size_,ind_size_,l_bound_,u_bound_),
+    // };
 }
