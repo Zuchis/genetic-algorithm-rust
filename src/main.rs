@@ -28,11 +28,11 @@ impl<T> Population<T> {
     }
 
     fn access(&self, i: u64, j: u64) -> &T {
-        &self.individuals[(i + (j * self.ind_size)) as usize]
+        &self.individuals[((i * self.ind_size) + j) as usize]
     }
 
     fn set(&mut self, i: u64, j: u64, value: T) {
-        self.individuals[(i + (j * self.ind_size)) as usize] = value;
+        self.individuals[((i * self.ind_size) + j) as usize] = value;
     }
 }
 
@@ -149,8 +149,9 @@ fn main() {
             .expect("lul")
     } else { 0.0 as f64 };
 
-    // let mut population = Population::<i64>::new(pop_size_,ind_size_,l_bound_,u_bound_);
-    let mut population = Population::<f64>::new(pop_size_,ind_size_,l_bound_,u_bound_);
+
+    let mut population = Population::<i64>::new(pop_size_,ind_size_,l_bound_,u_bound_);
+    // let mut population = Population::<f64>::new(pop_size_,ind_size_,l_bound_,u_bound_);
     // let mut population = Population::<bool>::new(pop_size_,ind_size_,l_bound_,u_bound_);
 
     population.initialize();
