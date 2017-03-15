@@ -150,8 +150,8 @@ fn main() {
     } else { 0.0 as f64 };
 
     // let mut population = Population::<i64>::new(pop_size_,ind_size_,l_bound_,u_bound_);
-    // let mut population = Population::<f64>::new(pop_size_,ind_size_,l_bound_,u_bound_);
-    let mut population = Population::<bool>::new(pop_size_,ind_size_,l_bound_,u_bound_);
+    let mut population = Population::<f64>::new(pop_size_,ind_size_,l_bound_,u_bound_);
+    // let mut population = Population::<bool>::new(pop_size_,ind_size_,l_bound_,u_bound_);
 
     population.initialize();
     population.print();
