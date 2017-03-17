@@ -34,6 +34,7 @@ impl<T> Population<T> {
     }
 }
 
+
 #[allow(dead_code)]
 impl Population<i64> {
 
@@ -83,6 +84,7 @@ impl Population<f64> {
         }
     }
 }
+
 
 #[allow(dead_code)]
 impl Population<bool> {
