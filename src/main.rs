@@ -1,7 +1,9 @@
 use std::env;
 use std::process;
 
+mod ga;
 mod population;
+mod fitness;
 
 fn main() {
     let args: Vec<_> = env::args().collect();
@@ -27,31 +29,25 @@ fn main() {
         }
     }
 
-    let pop_size_: u64 = args[2].trim().parse()
+    let p_size: u64 = args[2].trim().parse()
         .expect("Not a valid number");
 
-    let ind_size_: u64 = args[3].trim().parse()
+    let i_size: u64 = args[3].trim().parse()
         .expect("Not a valid number");
 
-    let l_bound_: f64 = if args.len() == 6 {
+    let lb: f64 = if args.len() == 6 {
         args[4].trim().parse()
             .expect("lul")
     } else { 0.0 as f64 };
 
-    let u_bound_: f64 = if args.len() == 6 {
+    let ub: f64 = if args.len() == 6 {
         args[5].trim().parse()
             .expect("lul")
     } else { 0.0 as f64 };
 
-
-    let mut pop = population::Population::<i64>::new(pop_size_,ind_size_,l_bound_,u_bound_);
-
-    pop.initialize();
-    pop.print();
-
-    // let mut population = match args[1].to_uppercase().as_ref() {
-    //     "INT"   => Population::<i64>::new(pop_size_,ind_size_,l_bound_,u_bound_),
-    //     "FLOAT" => Population::<f64>::new(pop_size_,ind_size_,l_bound_,u_bound_),
-    //       _     => Population::<bool>::new(pop_size_,ind_size_,l_bound_,u_bound_),
-    // };
+    match args[1].to_uppercase().as_ref() {
+        "INT"   => ga::int_loop(p_size,i_size,lb,ub),
+        "FLOAT" => ga::float_loop(p_size,i_size,lb,ub),
+        _       => ga::bin_loop(p_size,i_size),
+     };
 }
