@@ -1,6 +1,5 @@
 use population::Population;
 
-
 #[allow(dead_code)]
 pub fn binary_alternate (pop: &Population<bool>, ind: u64) -> f64 {
     let index = ind * pop.ind_size;
@@ -25,4 +24,15 @@ pub fn int_parity_alternate (pop: &Population<i64>, ind: u64) -> f64 {
         }
     }
     fit
+}
+
+#[allow(dead_code)]
+pub fn float_quadratic_min (pop: &Population<f64>, ind: u64) -> f64 {
+    let index = ind * pop.ind_size;
+    let mut fit: f64 = 0.0;
+    for j in 0 .. (pop.ind_size - 1) {
+        let value = pop.individuals[(index + j) as usize];
+        fit = fit + (value * value);
+    }
+    1.0 / fit
 }
