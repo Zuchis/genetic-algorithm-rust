@@ -12,6 +12,7 @@ pub fn int_loop(p_size: u64, i_size: u64, lb: f64, ub: f64) {
 pub fn float_loop(p_size: u64, i_size: u64, lb: f64, ub: f64) {
     let mut pop = Population::<f64>::new(p_size,i_size,lb,ub);
     pop.initialize();
+    pop.evaluate_all(&fitness::float_quadratic_min);
     pop.print();
 }
 
