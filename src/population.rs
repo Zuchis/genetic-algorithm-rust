@@ -44,6 +44,8 @@ impl<T> Population<T> {
             self.fit_array[i as usize] = f(&self,i);
         }
     }
+
+    // pub fn wheel(&mut self) -> 
 }
 
 
