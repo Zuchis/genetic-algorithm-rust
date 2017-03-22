@@ -4,6 +4,7 @@ use std::process;
 mod ga;
 mod population;
 mod fitness;
+mod helpers;
 
 fn main() {
     let args: Vec<_> = env::args().collect();
