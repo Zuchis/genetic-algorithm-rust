@@ -10,6 +10,13 @@ pub fn binary_alternate (ind: &Vec<bool>) -> f64 {
 }
 
 #[allow(dead_code)]
+pub fn bin_parps_function (ind: &Vec<bool>) -> f64 {
+    let mut fit: f64 = 0.0;
+    let converted: i64 = helpers::bin_to_int(ind);
+    // let 
+}
+
+#[allow(dead_code)]
 pub fn int_parity_alternate (ind: &Vec<i64>) -> f64 {
     let mut fit: f64 = 0.0;
     for i in 0 .. (ind.len() - 1) {
