@@ -51,6 +51,13 @@ impl<T> Population<T> {
         }
         &self.individuals[chosen]
     }
+
+    pub fn crossover(&mut self, parent1: usize, parent2: usize) {
+
+    }
+
+    // pub fn mutate_individual(&mut self, ind: usize) {
+    // }
 }
 
 
