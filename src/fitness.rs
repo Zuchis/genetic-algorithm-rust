@@ -1,3 +1,5 @@
+use ::helpers;
+
 #[allow(dead_code)]
 pub fn binary_alternate (ind: &Vec<bool>) -> f64 {
     let mut fit: f64 = 0.0;
