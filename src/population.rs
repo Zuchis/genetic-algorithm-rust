@@ -52,8 +52,14 @@ impl<T> Population<T> {
         &self.individuals[chosen]
     }
 
-    pub fn crossover(&mut self, parent1: usize, parent2: usize) {
+    pub fn crossover(&mut self, parent1: usize, parent2: usize)
+    where T: Clone {
+        let cut_position: usize = Range::new(0usize, (self.ind_size - 1) as usize).ind_sample(&mut rand::thread_rng());
+        let split_1 = self.individuals[parent1].split_off(cut_position);
+        let split_2 = self.individuals[parent2].split_off(cut_position);
 
+        self.individuals[parent1].extend_from_slice(&split_2);
+        self.individuals[parent2].extend_from_slice(&split_1);
     }
 
     // pub fn mutate_individual(&mut self, ind: usize) {
