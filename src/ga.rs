@@ -20,6 +20,7 @@ pub fn bin_loop(p_size: u64, i_size: u64) {
     let mut pop = Population::<bool>::new(p_size,i_size,0.0,0.0);
     pop.initialize();
     // pop.evaluate_all(&fitness::binary_alternate);
-    pop.evaluate_all(&fitness::bin_parps_function);
+    // pop.evaluate_all(&fitness::bin_parps_function);
+    pop.evaluate_all(&fitness::bin_radio_factory);
     pop.print();
 }
