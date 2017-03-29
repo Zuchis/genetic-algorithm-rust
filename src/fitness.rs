@@ -1,3 +1,5 @@
+#![allow(non_snake_case)]
+
 use ::helpers;
 
 #[allow(dead_code)]
@@ -13,9 +15,28 @@ pub fn binary_alternate (ind: &Vec<bool>) -> f64 {
 
 #[allow(dead_code)]
 pub fn bin_parps_function (ind: &Vec<bool>) -> f64 {
-    let mut fit: f64 = 0.0;
+    let fit: f64;
+    let float_value: f64;
     let converted: i64 = helpers::bin_to_int(ind);
-    // let 
+    let bit_limitant = (2i64.pow(16) - 1) as f64;
+    float_value = -2.0 + (4.0 / bit_limitant) * (converted as f64);
+    fit = (float_value * 20.0).cos() - (float_value.abs() / 2.0) + (float_value.powi(3) / 4.0);
+    fit + 4.0
+}
+
+#[allow(dead_code)]
+pub fn bin_radio_factory (ind: &Vec<bool>) -> f64 {
+    let fit: f64;
+    let float_valueST: f64;
+    let float_valueLX: f64;
+    let (st_vec,lx_vec) = ind.split_at(5);
+    let convertedST: i64 = helpers::bin_to_int(&st_vec.to_vec());
+    let convertedLX: i64 = helpers::bin_to_int(&lx_vec.to_vec());
+    let bit_limitant = (2i64.pow(5) - 1) as f64;
+    float_valueST = 0.0 + (24.0 / bit_limitant) * (convertedST as f64);
+    float_valueLX = 0.0 + (16.0 / bit_limitant) * (convertedLX as f64);
+    fit = ((30.0 * float_valueST + 40.0 * float_valueLX) / 1360.0) - (helpers::maxf(0.0, (float_valueST + 2.0 * float_valueLX - 40.0) / 16.0));
+    fit
 }
 
 #[allow(dead_code)]
