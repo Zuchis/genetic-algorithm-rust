@@ -11,6 +11,8 @@ pub struct Population<T> {
     pub fit_array: Vec<f64>,
     pub lower_bound: f64,
     pub upper_bound: f64,
+    pub cross_chance: f64,
+    pub mut_chance: f64
 }
 
 #[allow(dead_code)]
@@ -24,6 +26,8 @@ impl<T> Population<T> {
             upper_bound: ub,
             individuals: Vec::new(),
             fit_array: vec![0.0; pop_size_ as usize],
+            cross_chance: 0.35,
+            mut_chance: 0.05,
         }
     }
 
@@ -62,8 +66,17 @@ impl<T> Population<T> {
         self.individuals[parent2].extend_from_slice(&split_1);
     }
 
-    // pub fn mutate_individual(&mut self, ind: usize) {
-    // }
+    pub fn mutate_individual(&mut self, ind: usize, f: &Fn(&mut T)) {
+        let range = Range::new(0.0, 1.0);
+        let mut rng = rand::thread_rng();
+
+        for j in 0..self.ind_size {
+            let chance = range.ind_sample(&mut rng);
+            if chance <= self.mut_chance {
+                f(&mut self.individuals[ind][j as usize]);
+            }
+        }
+    }
 }
 
 
