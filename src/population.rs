@@ -66,14 +66,14 @@ impl<T> Population<T> {
         self.individuals[parent2].extend_from_slice(&split_1);
     }
 
-    pub fn mutate_individual(&mut self, ind: usize, f: &Fn(&mut T)) {
+    pub fn mutate_individual(&mut self, ind: usize, f: &Fn(&mut Vec<T>,usize)) {
         let range = Range::new(0.0, 1.0);
         let mut rng = rand::thread_rng();
 
         for j in 0..self.ind_size {
             let chance = range.ind_sample(&mut rng);
             if chance <= self.mut_chance {
-                f(&mut self.individuals[ind][j as usize]);
+                f(&mut self.individuals[ind],j as usize);
             }
         }
     }
