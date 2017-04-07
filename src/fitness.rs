@@ -2,6 +2,16 @@
 
 use ::helpers;
 
+pub trait HasFitness<T> {
+    fn fitness(&self, &Fn(&T) -> f64) -> f64;
+}
+
+impl<T> HasFitness<T> for T {
+    fn fitness(&self, f: &Fn(&T) -> f64) -> f64 {
+        f(&self)
+    }
+}
+
 #[allow(dead_code)]
 pub fn binary_alternate (ind: &Vec<bool>) -> f64 {
     let mut fit: f64 = 0.0;
