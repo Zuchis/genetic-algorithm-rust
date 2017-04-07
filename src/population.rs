@@ -3,6 +3,8 @@ extern crate rand;
 use population::rand::Rng;
 use population::rand::distributions::{IndependentSample, Range};
 
+use ::fitness::HasFitness;
+
 #[derive(Debug, Clone)]
 pub struct Population<T> {
     pub pop_size: u64,
@@ -19,7 +21,7 @@ pub struct Population<T> {
 impl<T> Population<T> {
 
     pub fn new(pop_size_: u64, ind_size_: u64, lb: f64, ub: f64) -> Population<T> {
-        Population::<T> {
+        let pop: Population<T> = Population::<T> {
             pop_size: pop_size_,
             ind_size: ind_size_,
             lower_bound: lb,
@@ -28,11 +30,13 @@ impl<T> Population<T> {
             fit_array: vec![0.0; pop_size_ as usize],
             cross_chance: 0.35,
             mut_chance: 0.05,
-        }
+        };
+        pop
     }
 
     pub fn evaluate_individual(&mut self, ind: u64, f: &Fn(&Vec<T>) -> f64) {
-        self.fit_array[ind as usize] = f(&self.individuals[ind as usize]);
+        // self.fit_array[ind as usize] = f(&self.individuals[ind as usize]);
+        self.fit_array[ind as usize] = self.individuals[ind as usize].fitness(f);
     }
 
     pub fn evaluate_all(&mut self, f: &Fn(&Vec<T>) -> f64) {
