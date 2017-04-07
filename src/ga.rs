@@ -1,6 +1,7 @@
 use population::Population;
 
 use ::fitness;
+use ::helpers;
 
 pub fn int_loop(p_size: u64, i_size: u64, lb: f64, ub: f64) {
     let mut pop = Population::<i64>::new(p_size,i_size,lb,ub);
@@ -23,4 +24,12 @@ pub fn bin_loop(p_size: u64, i_size: u64) {
     // pop.evaluate_all(&fitness::bin_parps_function);
     pop.evaluate_all(&fitness::bin_radio_factory);
     pop.print();
+}
+
+pub fn testing () {
+    let args: Vec<String> = helpers::parse_arguments();
+
+    for i in args {
+        println!("{}",i);
+    }
 }
