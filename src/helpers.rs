@@ -1,6 +1,7 @@
 use std::io::Read;
 use std::io::BufReader;
 use std::fs::File;
+use std::process;
 
 pub fn bin_to_int (bstr: &Vec<bool>) -> i64 {
     let mut converted: i64 = 0;
