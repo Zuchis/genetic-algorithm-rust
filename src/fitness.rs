@@ -20,7 +20,11 @@ pub fn binary_alternate (ind: &Vec<bool>) -> f64 {
             fit = fit + 1.0;
         }
     }
+    if fit == 0.0 {
+        return 0.2
+    }
     fit
+
 }
 
 #[allow(dead_code)]
