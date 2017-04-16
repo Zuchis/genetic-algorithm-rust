@@ -27,8 +27,8 @@ pub fn uniform_crossover<T>(parent1: &mut Vec<T>, parent2: &mut Vec<T>)
     for i in 0usize .. parent1.len() {
         let fifty_fifty: bool = rng.gen::<bool>();
         if fifty_fifty {
-            let value = &parent1[i];
-            parent1[i] = parent2[i];
+            let value = parent1[i].clone();
+            parent1[i] = parent2[i].clone();
             parent2[i] = value;
         }
     }
