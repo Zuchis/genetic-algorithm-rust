@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(non_upper_case_globals)]
 
 use ::helpers;
 
@@ -71,9 +72,18 @@ pub fn int_parity_alternate (ind: &Vec<i64>) -> f64 {
 #[allow(dead_code)]
 pub fn float_quadratic_min (ind: &Vec<f64>) -> f64 {
     let mut fit: f64 = 0.0;
+    static mut biggest: f64 = 0.0f64;
+    let div: f64;
+
     for i in 0 .. ind.len() {
         let value = ind[i as usize];
         fit = fit + (value * value);
     }
-    1.0 / fit
+
+    unsafe {
+        biggest = helpers::maxf(biggest, fit);
+        div = biggest;
+    }
+
+    1.0f64 - fit / div
 }
