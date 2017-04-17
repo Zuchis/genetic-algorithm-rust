@@ -16,9 +16,16 @@ pub fn int_loop(fit_function: fn(&Vec<i64>) -> f64, mut_function: fn(&mut Popula
     pop.evaluate_all();
     pop.print();
 
+    let interval = pop.num_of_generations / num_of_intervals;
+
     println!("\n");
     for i in 1 .. pop.num_of_generations {
         pop.evolve_population();
+        pop.write_statistics(i);
+        if i % interval == 0 {
+            pop.print();
+            println!("");
+        }
     }
     pop.print();
 }
@@ -29,9 +36,16 @@ pub fn float_loop(fit_function: fn(&Vec<f64>) -> f64, mut_function: fn(&mut Popu
     pop.evaluate_all();
     pop.print();
 
+    let interval = pop.num_of_generations / num_of_intervals;
+
     println!("\n");
     for i in 1 .. pop.num_of_generations {
         pop.evolve_population();
+        pop.write_statistics(i);
+        if i % interval == 0 {
+            pop.print();
+            println!("");
+        }
     }
     pop.print();
 }
@@ -47,6 +61,7 @@ pub fn bin_loop(fit_function: fn(&Vec<bool>) -> f64, mut_function: fn(&mut Popul
     println!("\n");
     for i in 1 .. pop.num_of_generations {
         pop.evolve_population();
+        pop.write_statistics(i);
         if i % interval == 0 {
             pop.print();
             println!("");
@@ -56,24 +71,28 @@ pub fn bin_loop(fit_function: fn(&Vec<bool>) -> f64, mut_function: fn(&mut Popul
 }
 
 pub fn testing () {
-    let args: Vec<String> = helpers::parse_arguments();
-    println!("Arguments given:");
-    for i in args {
-        println!("{}",i);
-    }
+    // let args: Vec<String> = helpers::parse_arguments();
+    // println!("Arguments given:");
+    // for i in args {
+    //     println!("{}",i);
+    // }
 
-    println!("A display of the one-point crossover");
+    // println!("A display of the one-point crossover");
 
-    let mut vec1: Vec<i64> = [1,2,3,4,5].to_vec();
-    let mut vec2: Vec<i64> = [6,7,8,9,10].to_vec();
-    crossover::one_point_crossover(&mut vec1, &mut vec2);
+    // let mut vec1: Vec<i64> = [1,2,3,4,5].to_vec();
+    // let mut vec2: Vec<i64> = [6,7,8,9,10].to_vec();
+    // crossover::one_point_crossover(&mut vec1, &mut vec2);
 
-    helpers::print_vector(&vec1);
-    helpers::print_vector(&vec2);
+    // helpers::print_vector(&vec1);
+    // helpers::print_vector(&vec2);
 
-    println!("Testing the simple step range");
-    for i in helpers::SimpleStepRange(0,10,2) {
-        print!("{} ", i);
-    }
-    println!("");
+    // println!("Testing the simple step range");
+    // for i in helpers::SimpleStepRange(0,10,2) {
+    //     print!("{} ", i);
+    // }
+    // println!("");
+
+    let ind: Vec<bool> = [true,false,true].to_vec();
+    let i: i64 = helpers::bin_to_int(&ind);
+    println!("{}",i);
 }
