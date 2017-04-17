@@ -80,6 +80,7 @@ impl<T> Population<T>
 
         let cross_function = match args[10].to_uppercase().as_ref() {
             "ONE_POINT_CROSSOVER" => crossover::one_point_crossover,
+            "UNIFORM_CROSSOVER" => crossover::uniform_crossover,
             _ => {
                 println!("Not a valid crossover function");
                 process::exit(1);
