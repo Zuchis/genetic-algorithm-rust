@@ -30,6 +30,13 @@ pub fn clampf (value: f64, lb: f64, ub: f64) -> f64 {
     ub.min(lb.max(value))
 }
 
+#[allow(dead_code)]
+pub fn truncate (value: f64, bits: u32) -> f64 {
+    let power = 10i64.pow(bits);
+    let truncated = (value * power as f64).round() / power as f64;
+    truncated
+}
+
 pub fn parse_arguments() -> Vec<String> {
     let file = File::open("ga.config").unwrap();
     let mut buf_reader = BufReader::new(file);
