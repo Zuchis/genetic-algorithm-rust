@@ -16,6 +16,7 @@ Avaliable Mutation Functions:
 
 Int:
     swap_position : swaps the selected index with another element of the chromossome chosen randomly
+    int_delta_mutation
 
 Float:
     delta_mutation : increments/decrements a delta value of the chosen element
