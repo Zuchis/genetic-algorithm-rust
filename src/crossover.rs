@@ -7,6 +7,10 @@ extern crate rand;
 use self::rand::Rng;
 use self::rand::distributions::{IndependentSample, Range};
 
+extern crate num;
+use self::num::{Num, Zero, One, Signed};
+
+use std::ops::{Add,Div,Sub,Mul};
 
 #[allow(dead_code)]
 pub fn one_point_crossover<T>(parent1: &mut Vec<T>, parent2: &mut Vec<T>)
@@ -32,4 +36,18 @@ pub fn uniform_crossover<T>(parent1: &mut Vec<T>, parent2: &mut Vec<T>)
             parent2[i] = value;
         }
     }
+}
+
+#[allow(dead_code)]
+pub fn blx_crossover<T>(parent1: &mut Vec<T>, parent2: &mut Vec<T>)
+    where T: Clone + PartialOrd + Signed + Num + Mul<Output = T> + Sub<Output = T> + Add<Output = T>{
+    let mut rng = rand::thread_rng();
+
+    let alpha = 0.5;
+
+    for i in 0usize .. parent1.len() {
+        let mut d = parent1[i].clone() - parent2[i].clone();
+        d = if d > T::zero() {d} else {-d};
+    }
+
 }
