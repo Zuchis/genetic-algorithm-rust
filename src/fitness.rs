@@ -47,8 +47,10 @@ pub fn bin_radio_factory (ind: &Vec<bool>) -> f64 {
     let convertedST: i64 = helpers::bin_to_int(&st_vec.to_vec());
     let convertedLX: i64 = helpers::bin_to_int(&lx_vec.to_vec());
     let bit_limitant = (2i64.pow(5) - 1) as f64;
-    float_valueST = 0.0 + (24.0 / bit_limitant) * (convertedST as f64);
-    float_valueLX = 0.0 + (16.0 / bit_limitant) * (convertedLX as f64);
+    float_valueST = (0.0 + (24.0 / bit_limitant) * (convertedST as f64)).ceil();
+    float_valueLX = (0.0 + (16.0 / bit_limitant) * (convertedLX as f64)).ceil();
+    // float_valueST = convertedST as f64;
+    // float_valueLX = convertedLX as f64;
     fit = ((30.0 * float_valueST + 40.0 * float_valueLX) / 1360.0) - (helpers::maxf(0.0, (float_valueST + 2.0 * float_valueLX - 40.0) / 16.0));
     fit
 }
