@@ -1,3 +1,5 @@
+#![allow(unused_variables)]
+
 mod ga;
 mod population;
 mod fitness;
@@ -7,9 +9,13 @@ mod mutation;
 mod selection;
 
 use std::process;
+use std::fs::File;
 
 fn main() {
     let args: Vec<String> = helpers::parse_arguments();
+
+    let f1 = File::create("best.log");
+    let f2 = File::create("average.log");
 
     match args[0].to_uppercase().as_ref() {
         "INT"   =>  {
