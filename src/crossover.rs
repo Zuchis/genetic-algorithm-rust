@@ -1,6 +1,7 @@
 #![allow(unused_imports)]
 #![allow(unused_variables)]
 #![allow(unused_mut)]
+#![allow(dead_code)]
 
 extern crate rand;
 
@@ -12,7 +13,6 @@ use self::num::{Num, Zero, One, Signed};
 
 use std::ops::{Add,Div,Sub,Mul};
 
-#[allow(dead_code)]
 pub fn one_point_crossover<T>(parent1: &mut Vec<T>, parent2: &mut Vec<T>)
     where T: Clone {
     let cut_position: usize = Range::new(1usize, (parent1.len() - 1) as usize).ind_sample(&mut rand::thread_rng());
@@ -23,7 +23,6 @@ pub fn one_point_crossover<T>(parent1: &mut Vec<T>, parent2: &mut Vec<T>)
     parent2.extend_from_slice(&split_1);
 }
 
-#[allow(dead_code)]
 pub fn uniform_crossover<T>(parent1: &mut Vec<T>, parent2: &mut Vec<T>)
     where T: Clone {
     let mut rng = rand::thread_rng();
@@ -38,7 +37,6 @@ pub fn uniform_crossover<T>(parent1: &mut Vec<T>, parent2: &mut Vec<T>)
     }
 }
 
-#[allow(dead_code)]
 pub fn blx_crossover<T>(parent1: &mut Vec<T>, parent2: &mut Vec<T>)
     where T: Clone + PartialOrd + Signed + Num + Mul<Output = T> + Sub<Output = T> + Add<Output = T>{
     let mut rng = rand::thread_rng();
