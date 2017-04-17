@@ -9,6 +9,8 @@ use population::rand::distributions::{IndependentSample, Range};
 use population::rand::distributions::normal::StandardNormal;
 
 use std::process;
+use std::fs::OpenOptions;
+use std::io::prelude::*;
 
 use ::fitness::HasFitness;
 use ::helpers;
@@ -155,6 +157,11 @@ impl<T> Population<T>
         best_index
     }
 
+    pub fn get_average_fitness(&self) -> f64 {
+        let sum: f64 = self.fit_array.iter().fold(0.0, |a, &b| a + b);
+        sum / self.pop_size as f64
+    }
+
     pub fn get_best_and_worst_individual(&self) -> (usize,usize) {
         let mut best_index: usize = 0;
         let mut worst_index: usize = 0;
@@ -219,6 +226,34 @@ impl<T> Population<T>
             self.fit_array[0] = best_fitness;
         }
         self.evaluate_all();
+    }
+
+    pub fn write_statistics(&self, iter: u64) {
+        let best: usize = self.get_best_individual();
+        let best_fitness: f64 = self.fit_array[best];
+        let average_fitness: f64 = self.get_average_fitness();
+        let mut best_file =
+            OpenOptions::new()
+            .write(true)
+            .append(true)
+            .open("best.log")
+            .unwrap();
+
+        let mut average_file =
+            OpenOptions::new()
+            .write(true)
+            .append(true)
+            .open("average.log")
+            .unwrap();
+
+        if let Err(e) = writeln!(best_file, "{}\t{}",iter,best_fitness) {
+            println!("{}",e);
+        }
+
+        if let Err(e) = writeln!(average_file, "{}\t{}",iter,average_fitness) {
+            println!("{}",e);
+        }
+
     }
 }
 
