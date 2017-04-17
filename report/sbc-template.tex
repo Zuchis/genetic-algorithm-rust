@@ -105,6 +105,12 @@ implementa todas as funções relacionadas a estas partes, isso permite uma melh
 Essa seção discute o conceito e implementação dos métodos de seleção implementados, todos os métodos de seleção recebem como argumento uma população e 
 retornam o índice do indivíduo escolhido.
 
+\subsection{Elitismo}
+
+A ferramenta possui a opção de ligar ou desligar o elitismo. Se o elitismo for ligado, antes de se iniciar a seleção da nova geração, 
+o algoritmo armazena o melhor indivíduo e ao final da iteração da nova geração, este indivíduo é adicionado novamente à população, sempre 
+na mesma posição para evitar a perda demasiadamente rápida da variabilidade genética.
+
 \subsection{Roleta}
 
 Este método possui uma certa probabilidade para selecionar qualquer indivíduo da população, todos possuem uma chance de serem escolhidos, 
@@ -122,7 +128,146 @@ indivíduos pois o número escolhido para o torneio não deve ser o mesmo do que
 mais elitista a seleção se tornará.
 
 \section{Crossover}
-    
+
+Essa seção discute sobre as estratégias utilizadas para realizar o cruzamento (\textit{crossover}) entre dois indivíduos, e também lista
+os métodos implementados, todas as funções de cruzamento recebe como argumento duas referências mutáveis para vetores, uma para 
+cada pai respectivamente. 
+
+Quando os algoritmos de cruzamento operam sobre esses dois vetores, eles estão manipulando-os 
+diretamente. A manipulação direta nos pais sem gerar filhos permite que os algoritmos de 
+cruzamento não necessitem clonar os pais, como a operação de clonagem de vetores 
+possui um alto custo computacional, essa é uma técnica de otimização.
+
+\subsection{One-point Crossover}
+
+Essa técnica de cruzamento seleciona apenas um ponto de corte e utiliza esse ponto para dividir os dois 
+pais em duas partes, os filhos são então gerados combinando as partes de pais diferentes de maneira 
+intercalada (sempre a primeira parte com a segunda).
+
+Para atingir esse feito, os dois vetores são divididos em dois no ponto selecionado, o primeiro pai tem a segunda parte do segundo 
+pai anexado a si e vice-versa.
+
+\subsection{Uniform Crossover}
+
+Nesta técnica, um loop itera sobre todas as posições possíveis dos vetores dos pais e um número aleatório
+é gerado e comparada com uma certa probabilidade, se o número gerado for maior que a probabilidade então 
+ocorrerá cruzamento nesta posição, os filhos gerados terão naquela posição os valores dos pais trocados.
+
+Na ferramenta, o algoritmo simplesmente verifica a probabilidade e o número aleatório gerado e se caso 
+o cruzamento ocorra em uma certa posição x, é feita uma simples troca entre os valores correspondentes 
+daquela posição entre os pais.
+
+\section{Mutação}
+
+Nesta seção serão discutidos os métodos de mutação implementados para a ferramenta. Todas as funções de 
+mutação recebem como argumento uma população de um certo tipo, o índice do indivíduo sofrendo mutação, e 
+a posição específica do gene na qual a mutação ocorrerá
+
+\subsection{Bit-Flip}
+
+Este método de mutação é extremamente simples, utilizado para populações com codificação binária, 
+o método simplesmente inverte o bit na posição selecionada.
+
+Na ferramenta implementada, a população com codificação binária é tratada como sendo \textit{booleans}, 
+por isso o bit-flip simplesmente usa o operador \textit{not} denotado por '!' para a inversão do bit.
+
+\subsection{Delta Mutation}
+
+Este método utiliza os limites inferior e superior da população para gerar um número aleatório entre os limitantes, 
+na posição selecionada do gene, será acrescentado ou subtraído (50\% de chance para cada um dos dois) o 
+equivalente a dez porcento do valor aleatório gerado. Após a adição dessa pequena variação, é verificado 
+se o novo valor não passa dos limitantes, caso passe, o valor é então modificado para o limitante que 
+está mais próximo.
+
+\subsection{Int Delta Mutation} 
+
+Esse método é exatamente igual ao anterior, a única diferença é que este é adaptado para populações 
+do tipo inteiro, por isso os limitantes são arredondados antes de realizar o resto da mutação.
+
+\subsection{Swap-Position}
+
+Esse método seleciona uma posição aleatória do indivíduo que não seja a atual posição escolhida 
+para mutação, os valores do gene nessas duas posições são então trocados.
+
+\section{Problemas Abordados}
+
+Nesta seção serão discutidas as estratégias utilizadas para solucionar os problemas propostos utilizando 
+a ferramenta para AGs implementada, consequentemente, também irá abordar como a função de adaptabilidade 
+foi implementada para cada um desses problemas.
+
+\subsection{Bits Alternados}
+
+Nesse problema, o objetivo era encontrar indivíduos que possuíssem a maior quantidade de bits alternados 
+tomados em pares (0 e 1 ou 1 e 0) de maneira sequencial. 
+
+A função de adaptabilidade para esse problema percorre o gene inteiro do indivíduo e para cada vez que encontra 
+dois bits consecutivos alternados, acrescenta-se o \textit{fitness} em 1, portanto o \textit{fitness} da solução ótima nesse 
+caso será de $n - 1$, sendo $n$ o tamanho escolhido para o gene de um indivíduo.
+
+\subsection{Minimização da Função Esférica}
+
+O objetivo é minimizar a função: $\sum^{n}_{i=1} i ^ 2$, sendo $n$ o tamanho escolhido para o gene de um indivíduo.
+
+A função de adaptabilidade primeiramente calcula o valor do somatório, e retorna o inverso do valor calculado, dessa 
+maneira, quanto menor for o resultado do somatório, maior será o fitness.
+
+\subsection{Paridade Alternada}
+
+Este problema é semelhante ao problema de bits alternados, a diferença é que neste a codificação da população 
+é do tipo inteiro e é verificado se os elementos tomados a pares sequencialmente possuem paridades alternadas 
+(par e ímpar ou ímpar e par).
+
+A função de adaptabilidade itera sobre todo o gene do indivíduo e cada vez que encontra dois elementos com 
+paridades alternadas acrescenta-se o \textit{fitness} em 1. Assim como o problema de bits alternados, 
+se alcança o ótimo neste problema quando o \textit{fitness} do indivíduo for igual a $n - 1$, sendo $n$
+o tamanho do indivíduo.
+
+\subsection{Maximização da Produção de Rádios}
+
+Este problema é mais específico. O objetivo é maximizar o lucro com a produção de relógios, sendo que 
+há dois tipos: normal e de luxo. Os normais fornecem um valor de 30 por unidade e os de luxo fornecem um 
+valor de 40 por unidade. Os relógios normais necessitam de 1 homem-dia para serem produzidos e os 
+relógios de luxo necessitam de 2 homens-dia para serem produzidos, sendo que a fábrica conta com 
+40 homens-dia. 
+
+Há um limite na quantidade de pessoas que podem trabalhar em cada uma das duas linhas, na de relógios 
+normais é de 24 pessoas e na de relógios de luxo é de 32 pessoas, consequentemente, só podem ser 
+produzidos 24 relógios normais e 16 relógios de luxo diariamente.
+
+Para maximizar o lucro, a função objetivo é dada por $\phi = 30 * st + 40 * lx$, sendo $st$ o número 
+de relógios normais e $lx$ o número de relógios de luxo. A função de adaptabilidade nesse caso é dada 
+por: $f = \phi + r * h$, na qual $\phi$ é a função objetivo, $h$, é uma função de penalidade e $r$ é 
+um coeficiente que representa o peso dado para a função de penalidade. Para este problema, o coeficiente 
+escolhido foi -1.
+
+Como este problema possui um limite de trabalhadores, há uma restrição dada por: $st + 2 * lx \leq 40$. 
+Portanto, a função de adaptabilidade resulta em: \\ $f = 30 * st + 40 * lx - \max(0,st + 2 * lx - 40)$.
+
+O max garante que o indivíduo não seja penalizado caso a quantidade de homens-dia não ultrapasse 40. 
+Porém, ainda há um problema nessa modelagem, os valores não estão normalizados, desta maneira, é mais 
+vantajoso violar a restrição do que obedecê-la, é necessário normalizar a função objetivo e a 
+função de penalidade. O resultado final ficará: \\ \\ $f = \frac{30 * st + 40 * lx}{1360} - 
+\max(0,\frac{st + 2 * lx - 40}{16})$.
+
+Para resolver esse problema, foi utilizado uma população de indivíduos com codificação binária, com 
+indivíduos de tamanho 10 (5 bits para representar a quantidade de relógios normais que varia entre 0 
+e 24, e 5 bits para representar a quantidade de relógios de luxo, que varia entre 0 e 16).
+
+No cálculo da função de fitness, o indivíduo primeiramente é dividido em dois vetores de tamanho 5, 
+um para cada uma das duas variáveis do problema. Esses dois vetores de binários são convertidos para 
+um valor em decimal, e este valor é normalizado para os limitantes de cada variável (0 a 24 e 0 a 16).
+
+Com os valores das variáveis convertidos e normalizados, a função por fim calcula o \textit{fitness}
+utilizando a fórmula supracitada, combinando as funções objetivo e de penalidade.
+
+\section{Outputs}
+
+Atualmente a ferramenta conta com um método de output que armazena em arquivos os valores do \textit{fitness}
+do melhor indivíduo e a média do \textit{fitness} da população. 
+
+Esses arquivos são formatados de uma maneira que podem ser utilizados por ferramentas de \textit{plotting}
+para gerar um gráfico de convergência.
+
 \bibliographystyle{sbc}
 \bibliography{sbc-template}
 
