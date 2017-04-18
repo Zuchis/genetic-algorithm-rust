@@ -57,6 +57,19 @@ pub fn bin_radio_factory (ind: &Vec<bool>) -> f64 {
 }
 
 #[allow(dead_code)]
+pub fn bin_pattern_recognition (ind: &Vec<bool>) -> f64 {
+    let fit: f64;
+    let pattern: Vec<bool> = [false,true,false,false,false,false,
+                              false,true,false,true,true,false,
+                              false,true,false,true,false,false,
+                              false,false,false,false,true,false,
+                              false,true,true,true,false,false,
+                              false,false,false,false,true,false].to_vec();
+    fit = helpers::hamming_distance(ind,&pattern).into();
+    36.0 - fit
+}
+
+#[allow(dead_code)]
 pub fn int_parity_alternate (ind: &Vec<i64>) -> f64 {
     let mut fit: f64 = 0.0;
     for i in 0 .. (ind.len() - 1) {
