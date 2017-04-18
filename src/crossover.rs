@@ -8,6 +8,8 @@ extern crate rand;
 use self::rand::Rng;
 use self::rand::distributions::{IndependentSample, Range};
 
+use ::helpers;
+
 extern crate num;
 use self::num::{Num, Zero, One, Signed};
 
@@ -37,15 +39,25 @@ pub fn uniform_crossover<T>(parent1: &mut Vec<T>, parent2: &mut Vec<T>)
     }
 }
 
-pub fn blx_crossover<T>(parent1: &mut Vec<T>, parent2: &mut Vec<T>)
-    where T: Clone + PartialOrd + Signed + Num + Mul<Output = T> + Sub<Output = T> + Add<Output = T>{
+pub fn blx_crossover(parent1: &mut Vec<f64>, parent2: &mut Vec<f64>) {
     let mut rng = rand::thread_rng();
 
     let alpha = 0.5;
 
     for i in 0usize .. parent1.len() {
-        let mut d = parent1[i].clone() - parent2[i].clone();
-        d = if d > T::zero() {d} else {-d};
+        let d = (parent1[i] - parent2[i]).abs();
+
+        let a = helpers::minf(parent1[i],parent2[i]) - alpha * d;
+        let b = helpers::maxf(parent1[i],parent2[i]) + alpha * d;
+
+        if a != b {
+            parent1[i] = rand::thread_rng().gen_range(a,b);
+            parent2[i] = rand::thread_rng().gen_range(a,b);
+        } else {
+            parent1[i] = a;
+            parent2[i] = a;
+        }
+
     }
 
 }
