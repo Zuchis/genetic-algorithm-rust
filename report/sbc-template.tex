@@ -157,6 +157,13 @@ Na ferramenta, o algoritmo simplesmente verifica a probabilidade e o número ale
 o cruzamento ocorra em uma certa posição x, é feita uma simples troca entre os valores correspondentes 
 daquela posição entre os pais.
 
+\subsection{Blend Crossover}
+
+Técnica de crossover para população com codificação real. Para cada posição dos genes dos indivíduos, 
+é gerado um valor aleatório em um intervalo cujos limitantes são os valores dos genes dos pais naquela 
+posição específica, esses limitantes são ligeiramente alterados por um certo delta arbitrário multiplicado 
+por um coeficiente que representa o quão distante esses dois valores estão um do outro.
+
 \section{Mutação}
 
 Nesta seção serão discutidos os métodos de mutação implementados para a ferramenta. Todas as funções de 
@@ -189,11 +196,26 @@ do tipo inteiro, por isso os limitantes são arredondados antes de realizar o re
 Esse método seleciona uma posição aleatória do indivíduo que não seja a atual posição escolhida 
 para mutação, os valores do gene nessas duas posições são então trocados.
 
+\subsection{Gaussian Mutation}
+
+Mutação que altera o valor do gene em uma posição específica através da função gaussiana, utilizando o 
+valor do gene como média e 10\% do intervalo dos limitantes da população como desvio padrão.
+
+\section{Outputs}
+
+Atualmente a ferramenta conta com um método de output que armazena em arquivos os valores do \textit{fitness}
+do melhor indivíduo e a média do \textit{fitness} da população. 
+
+Esses arquivos são formatados de uma maneira que podem ser utilizados por ferramentas de \textit{plotting}
+para gerar um gráfico de convergência.
+
 \section{Problemas Abordados}
 
 Nesta seção serão discutidas as estratégias utilizadas para solucionar os problemas propostos utilizando 
 a ferramenta para AGs implementada, consequentemente, também irá abordar como a função de adaptabilidade 
-foi implementada para cada um desses problemas.
+foi implementada para cada um desses problemas. Como os problemas abordados foram simples, para todos 
+eles foram utilizadas populações de tamanho 50 e foram feitas 100 iterações. Além disso foi utilizado 
+o método de seleção torneio para todos os problemas pois facilita as comparações das convergências.
 
 \subsection{Bits Alternados}
 
@@ -204,12 +226,31 @@ A função de adaptabilidade para esse problema percorre o gene inteiro do indiv
 dois bits consecutivos alternados, acrescenta-se o \textit{fitness} em 1, portanto o \textit{fitness} da solução ótima nesse 
 caso será de $n - 1$, sendo $n$ o tamanho escolhido para o gene de um indivíduo.
 
+Para este problema, foi utilizado a mutação bit flip e o crossover uniforme, com uma população com indivíduos de tamanho 
+20.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=.5\textwidth]{pictures/bin-alternate}
+\end{figure}
+
+O melhor indivíduo alcançou o fitness 19, o que era o ótimo nesse caso.
+
 \subsection{Minimização da Função Esférica}
 
 O objetivo é minimizar a função: $\sum^{n}_{i=1} i ^ 2$, sendo $n$ o tamanho escolhido para o gene de um indivíduo.
 
-A função de adaptabilidade primeiramente calcula o valor do somatório, e retorna o inverso do valor calculado, dessa 
-maneira, quanto menor for o resultado do somatório, maior será o fitness.
+A função de adaptabilidade primeiramente calcula o valor do somatório, e retorna o  valor calculado, normalizado, 
+armazenando o maior valor já encontrado pela população o subtraindo a função objetivo desse maior valor encontrado. 
+Dessa maneira, quanto menor for o resultado do somatório, maior será o fitness.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=.5\textwidth]{pictures/quadratic}
+\end{figure}
+
+Tanto o melhor indivíduo quanto a média foram capazes de convergir muito bem, foi utilizado a mutação delta com 
+o crossover blx.
 
 \subsection{Paridade Alternada}
 
@@ -221,6 +262,15 @@ A função de adaptabilidade itera sobre todo o gene do indivíduo e cada vez qu
 paridades alternadas acrescenta-se o \textit{fitness} em 1. Assim como o problema de bits alternados, 
 se alcança o ótimo neste problema quando o \textit{fitness} do indivíduo for igual a $n - 1$, sendo $n$
 o tamanho do indivíduo.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=.5\textwidth]{pictures/parity}
+\end{figure}
+
+Este foi o problema que mais demorou para convergir em 100 iterações para uma população de indivíduos de tamanho 20, 
+foi utilizada a mutação delta adaptada para inteiros com o crossover uniforme, apesar da relativa demora para 
+convergir, a média obteve um desempenho consistente.
 
 \subsection{Maximização da Produção de Rádios}
 
@@ -260,13 +310,32 @@ um valor em decimal, e este valor é normalizado para os limitantes de cada vari
 Com os valores das variáveis convertidos e normalizados, a função por fim calcula o \textit{fitness}
 utilizando a fórmula supracitada, combinando as funções objetivo e de penalidade.
 
-\section{Outputs}
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=.5\textwidth]{pictures/radio-factory}
+\end{figure}
 
-Atualmente a ferramenta conta com um método de output que armazena em arquivos os valores do \textit{fitness}
-do melhor indivíduo e a média do \textit{fitness} da população. 
+Coincidentemente já havia um indivíduo com a melhor solução na geração inicial, e como o elitismo 
+foi utilizado, o melhor sempre permaneceu no topo. Considerando que nesse problema os indivíduos 
+possuem tamanho 10, a convergência foi consideravelmente rápida, porém a média da população não 
+se manteve consistente ao final da execução.
 
-Esses arquivos são formatados de uma maneira que podem ser utilizados por ferramentas de \textit{plotting}
-para gerar um gráfico de convergência.
+\subsection{Reconhecimento de Padrão Gráfico}
+
+Para resolver esse problema, o padrão gráfico, por possuir apenas duas cores, foi transformado em um 
+vetor de bits e a função de adaptabilidade simplesmente calcula uma distância de Hamming entre o 
+padrão gráfico e o indivíduo e subtrai o resultado do número 36, que é o máximo que se pode 
+atingir com essa operação.
+
+Foi utilizado a mutação bit flip e o crossover uniforme.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=.5\textwidth]{pictures/pattern-rec}
+\end{figure}
+
+Pode-se analisar que o melhor indivíduo foi capaz de atingir o ótimo, cujo valor da função objetivo 
+deveria ser 36.
 
 \bibliographystyle{sbc}
 \bibliography{sbc-template}
