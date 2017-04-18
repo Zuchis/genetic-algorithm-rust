@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use std::fmt;
 use std::io::Read;
 use std::io::BufReader;
@@ -21,6 +23,11 @@ pub fn maxf (x:f64, y:f64) -> f64 {
     max
 }
 
+pub fn minf (x:f64, y:f64) -> f64 {
+    let min = if x <= y  {x} else {y};
+    min
+}
+
 pub fn clamp<T> (value: T, lb: T, ub: T) -> T
     where T: Ord {
     cmp::min(ub,cmp::max(lb, value))
@@ -30,7 +37,6 @@ pub fn clampf (value: f64, lb: f64, ub: f64) -> f64 {
     ub.min(lb.max(value))
 }
 
-#[allow(dead_code)]
 pub fn truncate (value: f64, bits: u32) -> f64 {
     let power = 10i64.pow(bits);
     let truncated = (value * power as f64).round() / power as f64;
@@ -51,7 +57,6 @@ pub fn parse_arguments() -> Vec<String> {
     args
 }
 
-#[allow(dead_code)]
 pub fn print_vector<T>(vec: &Vec<T>)
     where T: fmt::Display {
     for i in 0 .. vec.len() {
@@ -60,8 +65,18 @@ pub fn print_vector<T>(vec: &Vec<T>)
     println!("");
 }
 
+pub fn hamming_distance<T>(v1: &Vec<T>, v2: &Vec<T>) -> u32
+    where T: PartialEq {
+    let mut distance: u32 = 0;
+    for i in 0usize .. v1.len() {
+        if v1[i] != v2[i] {
+            distance += 1;
+        }
+    }
+    distance
+}
+
 // http://stackoverflow.com/questions/27893223/how-do-i-iterate-over-a-range-with-a-custom-step
-#[allow(dead_code)]
 pub struct SimpleStepRange(pub usize, pub usize, pub usize);  // start, end, and step
 
 impl Iterator for SimpleStepRange {
