@@ -10,8 +10,13 @@ use ::crossover;
 
 static num_of_intervals: u64 = 10;
 
-pub fn int_loop(fit_function: fn(&Vec<i64>) -> f64, mut_function: fn(&mut Population<i64>, usize, usize)) {
-    let mut pop = Population::<i64>::new(fit_function,mut_function);
+pub fn int_loop(
+    fit_function: fn(&Vec<i64>) -> f64,
+    mut_function: fn(&mut Population<i64>, usize, usize),
+    cross_function: fn(&mut Vec<i64>, &mut Vec<i64>),
+    select_function: fn(&mut Population<i64>) -> usize,
+    ) {
+    let mut pop = Population::<i64>::new(fit_function,mut_function,cross_function,select_function);
     pop.initialize();
     pop.evaluate_all();
     pop.print();
@@ -30,8 +35,13 @@ pub fn int_loop(fit_function: fn(&Vec<i64>) -> f64, mut_function: fn(&mut Popula
     pop.print();
 }
 
-pub fn float_loop(fit_function: fn(&Vec<f64>) -> f64, mut_function: fn(&mut Population<f64>, usize, usize)) {
-    let mut pop = Population::<f64>::new(fit_function,mut_function);
+pub fn float_loop(
+    fit_function: fn(&Vec<f64>) -> f64,
+    mut_function: fn(&mut Population<f64>, usize, usize),
+    cross_function: fn(&mut Vec<f64>, &mut Vec<f64>),
+    select_function: fn(&mut Population<f64>) -> usize,
+) {
+    let mut pop = Population::<f64>::new(fit_function,mut_function,cross_function,select_function);
     pop.initialize();
     pop.evaluate_all();
     pop.print();
@@ -50,8 +60,13 @@ pub fn float_loop(fit_function: fn(&Vec<f64>) -> f64, mut_function: fn(&mut Popu
     pop.print();
 }
 
-pub fn bin_loop(fit_function: fn(&Vec<bool>) -> f64, mut_function: fn(&mut Population<bool>, usize, usize)) {
-    let mut pop = Population::<bool>::new(fit_function,mut_function);
+pub fn bin_loop(
+    fit_function: fn(&Vec<bool>) -> f64,
+    mut_function: fn(&mut Population<bool>, usize, usize),
+    cross_function: fn(&mut Vec<bool>, &mut Vec<bool>),
+    select_function: fn(&mut Population<bool>) -> usize,
+    ) {
+    let mut pop = Population::<bool>::new(fit_function,mut_function,cross_function,select_function);
     pop.initialize();
     pop.evaluate_all();
     pop.print();
