@@ -44,7 +44,12 @@ pub struct Population<T>
 impl<T> Population<T>
     where T: Clone {
 
-    pub fn new(fit_function: fn(&Vec<T>) -> f64, mut_function: fn(&mut Population<T>, usize, usize)) -> Population<T> {
+    pub fn new(
+        fit_function: fn(&Vec<T>) -> f64,
+        mut_function: fn(&mut Population<T>, usize, usize),
+        cross_function: fn(&mut Vec<T>, &mut Vec<T>),
+        select_function: fn(&mut Population<T>) -> usize,
+    ) -> Population<T> {
         let args: Vec<String> = helpers::parse_arguments();
 
 
@@ -75,25 +80,6 @@ impl<T> Population<T>
         let elitism_option = match args[13].to_uppercase().as_ref() {
             "TRUE" => true,
             _ => false,
-        };
-
-
-        let cross_function = match args[10].to_uppercase().as_ref() {
-            "ONE_POINT_CROSSOVER" => crossover::one_point_crossover,
-            "UNIFORM_CROSSOVER" => crossover::uniform_crossover,
-            _ => {
-                println!("Not a valid crossover function");
-                process::exit(1);
-            }
-        };
-
-        let select_function = match args[8].to_uppercase().as_ref() {
-            "WHEEL" => selection::wheel,
-            "TOURNAMENT" => selection::tournament,
-            _ => {
-                println!("Not a valid selection function");
-                process::exit(1);
-            }
         };
 
         let pop: Population<T> = Population::<T> {
