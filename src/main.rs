@@ -34,7 +34,25 @@ fn main() {
                     process::exit(1);
                 }
             };
-            ga::int_loop(fit_function,mut_function);
+
+            let cross_function = match args[10].to_uppercase().as_ref() {
+                "ONE_POINT_CROSSOVER" => crossover::one_point_crossover,
+                "UNIFORM_CROSSOVER" => crossover::uniform_crossover,
+                _ => {
+                    println!("Not a valid crossover function");
+                    process::exit(1);
+                }
+            };
+
+            let select_function = match args[8].to_uppercase().as_ref() {
+                "WHEEL" => selection::wheel,
+                "TOURNAMENT" => selection::tournament,
+                _ => {
+                    println!("Not a valid selection function");
+                    process::exit(1);
+                }
+            };
+            ga::int_loop(fit_function,mut_function,cross_function,select_function);
         }
         "FLOAT" =>  {
             let fit_function = match args[11].to_uppercase().as_ref() {
@@ -46,18 +64,39 @@ fn main() {
             };
             let mut_function = match args[12].to_uppercase().as_ref() {
                 "DELTA_MUTATION" => mutation::delta_mutation,
+                "GAUSSIAN_MUTATION" => mutation::gaussian_mutation,
                        _         => {
                     println!("Not a valid mutation function");
                     process::exit(1);
                 }
             };
-            ga::float_loop(fit_function, mut_function);
+
+            let cross_function = match args[10].to_uppercase().as_ref() {
+                "ONE_POINT_CROSSOVER" => crossover::one_point_crossover,
+                "UNIFORM_CROSSOVER"   => crossover::uniform_crossover,
+                "BLX_CROSSOVER"       => crossover::blx_crossover,
+                _ => {
+                    println!("Not a valid crossover function");
+                    process::exit(1);
+                }
+            };
+
+            let select_function = match args[8].to_uppercase().as_ref() {
+                "WHEEL" => selection::wheel,
+                "TOURNAMENT" => selection::tournament,
+                _ => {
+                    println!("Not a valid selection function");
+                    process::exit(1);
+                }
+            };
+            ga::float_loop(fit_function, mut_function,cross_function,select_function);
         }
         "BIN"  =>   {
             let fit_function = match args[11].to_uppercase().as_ref() {
                 "BINARY_ALTERNATE" => fitness::binary_alternate,
                 "BIN_PARPS_FUNCTION" => fitness::bin_parps_function,
                 "BIN_RADIO_FACTORY" => fitness::bin_radio_factory,
+                "BIN_PATTERN_RECOGNITION" => fitness::bin_pattern_recognition,
                 _          => {
                     println!("Not a valid fitness function");
                     process::exit(1);
@@ -70,7 +109,25 @@ fn main() {
                     process::exit(1);
                 }
             };
-            ga::bin_loop(fit_function, mut_function);
+
+            let cross_function = match args[10].to_uppercase().as_ref() {
+                "ONE_POINT_CROSSOVER" => crossover::one_point_crossover,
+                "UNIFORM_CROSSOVER" => crossover::uniform_crossover,
+                _ => {
+                    println!("Not a valid crossover function");
+                    process::exit(1);
+                }
+            };
+
+            let select_function = match args[8].to_uppercase().as_ref() {
+                "WHEEL" => selection::wheel,
+                "TOURNAMENT" => selection::tournament,
+                _ => {
+                    println!("Not a valid selection function");
+                    process::exit(1);
+                }
+            };
+            ga::bin_loop(fit_function, mut_function,cross_function,select_function);
         }
           _     => ga::testing(),
      };
