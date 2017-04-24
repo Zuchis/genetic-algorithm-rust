@@ -248,17 +248,26 @@ impl<T> Population<T>
 #[allow(dead_code)]
 impl Population<i64> {
 
-    pub fn initialize(&mut self) {
+    pub fn initialize(&mut self, perm: bool) {
         for _ in 0..self.pop_size {
             self.individuals.push(vec![0; self.ind_size as usize]);
         }
         let between = Range::new(self.lower_bound.floor() as i64, self.upper_bound.floor() as i64);
         let mut rng = rand::thread_rng();
 
-        for i in 0..self.pop_size {
-            for j in 0..self.ind_size {
-                let value: i64 = between.ind_sample(&mut rng);
-                self.individuals[i as usize][j as usize] = value;
+        if perm == true {
+            for i in 0usize..self.pop_size as usize {
+                for j in 0usize..self.ind_size as usize {
+                    let value: i64 = between.ind_sample(&mut rng);
+                    self.individuals[i][j] = value;
+                }
+            }
+        } else {
+            for i in 0usize..self.pop_size as usize {
+                for j in 0usize..self.ind_size as usize {
+                    self.individuals[i][j] = j as i64;
+                }
+                rng.shuffle(&mut self.individuals[i]);
             }
         }
     }
