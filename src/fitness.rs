@@ -78,6 +78,18 @@ pub fn int_parity_alternate (ind: &Vec<i64>) -> f64 {
     fit
 }
 
+pub fn n_queens (ind: &Vec<i64>) -> f64 {
+    let mut colisions: f64 = 0.0;
+    for i in 0usize .. (ind.len() - 1) {
+        for j in (i + 1) .. ind.len() {
+            if (ind[i] - ind[j]).abs() == (j - i) as i64 {
+                colisions += 1.0;
+            }
+        }
+    }
+    1.0 - (colisions / (ind.len() as f64))
+}
+
 pub fn float_quadratic_min (ind: &Vec<f64>) -> f64 {
     let mut fit: f64 = 0.0;
     static mut biggest: f64 = 0.0f64;
