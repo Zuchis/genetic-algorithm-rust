@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
+#![allow(dead_code)]
 
 use ::helpers;
 
@@ -13,7 +14,6 @@ impl<T> HasFitness<T> for T {
     }
 }
 
-#[allow(dead_code)]
 pub fn binary_alternate (ind: &Vec<bool>) -> f64 {
     let mut fit: f64 = 0.0;
     for i in 0 .. (ind.len() - 1) {
@@ -28,7 +28,6 @@ pub fn binary_alternate (ind: &Vec<bool>) -> f64 {
 
 }
 
-#[allow(dead_code)]
 pub fn bin_parps_function (ind: &Vec<bool>) -> f64 {
     let fit: f64;
     let float_value: f64;
@@ -39,7 +38,6 @@ pub fn bin_parps_function (ind: &Vec<bool>) -> f64 {
     fit + 4.0
 }
 
-#[allow(dead_code)]
 pub fn bin_radio_factory (ind: &Vec<bool>) -> f64 {
     let fit: f64;
     let float_valueST: f64;
@@ -56,7 +54,6 @@ pub fn bin_radio_factory (ind: &Vec<bool>) -> f64 {
     fit
 }
 
-#[allow(dead_code)]
 pub fn bin_pattern_recognition (ind: &Vec<bool>) -> f64 {
     let fit: f64;
     let pattern: Vec<bool> = [false,true,false,false,false,false,
@@ -69,7 +66,6 @@ pub fn bin_pattern_recognition (ind: &Vec<bool>) -> f64 {
     36.0 - fit
 }
 
-#[allow(dead_code)]
 pub fn int_parity_alternate (ind: &Vec<i64>) -> f64 {
     let mut fit: f64 = 0.0;
     for i in 0 .. (ind.len() - 1) {
@@ -82,7 +78,6 @@ pub fn int_parity_alternate (ind: &Vec<i64>) -> f64 {
     fit
 }
 
-#[allow(dead_code)]
 pub fn float_quadratic_min (ind: &Vec<f64>) -> f64 {
     let mut fit: f64 = 0.0;
     static mut biggest: f64 = 0.0f64;
