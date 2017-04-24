@@ -18,7 +18,7 @@ fn main() {
     let f2 = File::create("average.log");
 
     match args[0].to_uppercase().as_ref() {
-        "INT"   =>  {
+        "INT" | "INT_PERM"   =>  {
             let fit_function = match args[11].to_uppercase().as_ref() {
                 "INT_PARITY_ALTERNATE" => fitness::int_parity_alternate,
                 _          => {
@@ -52,7 +52,11 @@ fn main() {
                     process::exit(1);
                 }
             };
-            ga::int_loop(fit_function,mut_function,cross_function,select_function);
+            let perm = match args[0].to_uppercase().as_ref() {
+                "INT" => true,
+                  _   => false,
+            };
+            ga::int_loop(fit_function,mut_function,cross_function,select_function,perm);
         }
         "FLOAT" =>  {
             let fit_function = match args[11].to_uppercase().as_ref() {
