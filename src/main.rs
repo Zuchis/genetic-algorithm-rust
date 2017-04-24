@@ -21,6 +21,7 @@ fn main() {
         "INT" | "INT_PERM"   =>  {
             let fit_function = match args[11].to_uppercase().as_ref() {
                 "INT_PARITY_ALTERNATE" => fitness::int_parity_alternate,
+                "N_QUEENS" => fitness::n_queens,
                 _          => {
                     println!("Not a valid fitness function");
                     process::exit(1);
@@ -38,6 +39,7 @@ fn main() {
             let cross_function = match args[10].to_uppercase().as_ref() {
                 "ONE_POINT_CROSSOVER" => crossover::one_point_crossover,
                 "UNIFORM_CROSSOVER" => crossover::uniform_crossover,
+                "PMX_CROSSOVER" => crossover::pmx_crossover,
                 _ => {
                     println!("Not a valid crossover function");
                     process::exit(1);
