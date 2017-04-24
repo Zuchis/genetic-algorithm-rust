@@ -14,6 +14,7 @@ extern crate num;
 use self::num::{Num, Zero, One, Signed};
 
 use std::ops::{Add,Div,Sub,Mul};
+use std::cmp;
 
 pub fn one_point_crossover<T>(parent1: &mut Vec<T>, parent2: &mut Vec<T>)
     where T: Clone {
@@ -37,6 +38,46 @@ pub fn uniform_crossover<T>(parent1: &mut Vec<T>, parent2: &mut Vec<T>)
             parent2[i] = value;
         }
     }
+}
+
+pub fn pmx_crossover<T>(parent1: &mut Vec<T>, parent2: &mut Vec<T>)
+    where T: Clone + PartialEq {
+    let interval = Range::new(1usize, (parent1.len() -1));
+    let mut rng = rand::thread_rng();
+    let cut_position1: usize = interval.ind_sample(&mut rng);
+    let mut cut_position2: usize;
+    loop {
+        cut_position2 = interval.ind_sample(&mut rng);
+        if cut_position2 != cut_position1 {
+            break;
+        }
+    }
+    let beg = cmp::min(cut_position1,cut_position2);
+    let end = cmp::max(cut_position1,cut_position2);
+    let mut slice1: Vec<T> = Vec::new();
+    let mut slice2: Vec<T> = Vec::new();
+    for i in beg .. end {
+        slice1.push(parent1[i].clone());
+        slice2.push(parent2[i].clone());
+    }
+
+    for i in 0usize .. parent1.len() {
+        let (is_in, position) = helpers::is_in(&parent1[i],&slice2);
+        if is_in {
+            parent1[i] = slice1[position].clone();
+        }
+        let (is_in2,position2) = helpers::is_in(&parent2[i],&slice1);
+        if is_in2 {
+            parent2[i] = slice2[position2].clone();
+        }
+    }
+    let mut matched_section_index: usize = 0;
+    for i in beg .. end {
+        parent1[i] = slice2[matched_section_index].clone();
+        parent2[i] = slice1[matched_section_index].clone();
+        matched_section_index += 1;
+    }
+    println!("The chosen cut points were:{} {}",beg,end);
 }
 
 pub fn blx_crossover(parent1: &mut Vec<f64>, parent2: &mut Vec<f64>) {
