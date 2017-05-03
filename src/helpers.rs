@@ -86,6 +86,18 @@ pub fn is_in<T>(value: &T, vec: &Vec<T>) -> (bool,usize)
     (false,0)
 }
 
+pub fn has_repeated_elements(vec: &Vec<i64>) -> bool {
+    let mut marked: Vec<bool> = vec![false;vec.len()];
+    for i in 0usize .. vec.len() {
+        if marked[vec[i].abs() as usize] == false {
+            marked[vec[i] as usize] = true;
+        } else {
+            return true;
+        }
+    }
+    false
+}
+
 // http://stackoverflow.com/questions/27893223/how-do-i-iterate-over-a-range-with-a-custom-step
 pub struct SimpleStepRange(pub usize, pub usize, pub usize);  // start, end, and step
 
