@@ -40,8 +40,7 @@ pub fn uniform_crossover<T>(parent1: &mut Vec<T>, parent2: &mut Vec<T>)
     }
 }
 
-pub fn pmx_crossover<T>(parent1: &mut Vec<T>, parent2: &mut Vec<T>)
-    where T: Clone + PartialEq {
+pub fn pmx_crossover(parent1: &mut Vec<i64>, parent2: &mut Vec<i64>) {
     let interval = Range::new(1usize, (parent1.len() -1));
     let mut rng = rand::thread_rng();
     let cut_position1: usize = interval.ind_sample(&mut rng);
@@ -54,14 +53,35 @@ pub fn pmx_crossover<T>(parent1: &mut Vec<T>, parent2: &mut Vec<T>)
     }
     let beg = cmp::min(cut_position1,cut_position2);
     let end = cmp::max(cut_position1,cut_position2);
-    let mut slice1: Vec<T> = Vec::new();
-    let mut slice2: Vec<T> = Vec::new();
+    let mut slice1: Vec<i64> = Vec::new();
+    let mut slice2: Vec<i64> = Vec::new();
+
+    let mut matched_section_index: usize = 0;
+
     for i in beg .. end {
         slice1.push(parent1[i].clone());
         slice2.push(parent2[i].clone());
+
+        parent1[i] = slice2[matched_section_index].clone();
+        parent2[i] = slice1[matched_section_index].clone();
+        matched_section_index += 1;
     }
 
-    for i in 0usize .. parent1.len() {
+    let mut slice_end: usize = slice1.len();
+    let mut i: usize = 0;
+
+    while i != slice_end {
+        let (is_in, position) = helpers::is_in(&slice1[i],&slice2);
+        if is_in {
+            slice2.remove(position);
+            slice1.remove(i);
+            slice_end -= 1;
+        } else {
+            i += 1;
+        }
+    }
+
+    for i in 0usize .. beg {
         let (is_in, position) = helpers::is_in(&parent1[i],&slice2);
         if is_in {
             parent1[i] = slice1[position].clone();
@@ -71,13 +91,24 @@ pub fn pmx_crossover<T>(parent1: &mut Vec<T>, parent2: &mut Vec<T>)
             parent2[i] = slice2[position2].clone();
         }
     }
-    let mut matched_section_index: usize = 0;
-    for i in beg .. end {
-        parent1[i] = slice2[matched_section_index].clone();
-        parent2[i] = slice1[matched_section_index].clone();
-        matched_section_index += 1;
+
+    for i in end .. parent1.len() {
+        let (is_in, position) = helpers::is_in(&parent1[i],&slice2);
+        if is_in {
+            parent1[i] = slice1[position].clone();
+        }
+        let (is_in2,position2) = helpers::is_in(&parent2[i],&slice1);
+        if is_in2 {
+            parent2[i] = slice2[position2].clone();
+        }
     }
-    println!("The chosen cut points were:{} {}",beg,end);
+    // println!("The chosen cut points were:{} {}",beg,end);
+    // if helpers::has_repeated_elements(parent1) || helpers::has_repeated_elements(parent2) {
+    //     helpers::print_vector(parent1);
+    //     helpers::print_vector(parent2);
+    //     panic!("There are repeated elements!");
+    // }
+    // println!("");
 }
 
 pub fn blx_crossover(parent1: &mut Vec<f64>, parent2: &mut Vec<f64>) {
