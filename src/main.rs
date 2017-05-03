@@ -22,6 +22,7 @@ fn main() {
             let fit_function = match args[11].to_uppercase().as_ref() {
                 "INT_PARITY_ALTERNATE" => fitness::int_parity_alternate,
                 "N_QUEENS" => fitness::n_queens,
+                "LABIRINTH_MINIMUM_PATH" => fitness::labirinth_minimum_path,
                 _          => {
                     println!("Not a valid fitness function");
                     process::exit(1);
