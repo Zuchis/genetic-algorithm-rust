@@ -1,10 +1,13 @@
 #![allow(dead_code)]
 
+extern crate num;
+
 use std::fmt;
 use std::io::Read;
 use std::io::BufReader;
 use std::fs::File;
 use std::cmp;
+use std::ops::{Sub,Mul};
 
 pub fn bin_to_int (bstr: &Vec<bool>) -> i64 {
     let mut converted: i64 = 0;
@@ -72,6 +75,17 @@ pub fn hamming_distance<T>(v1: &Vec<T>, v2: &Vec<T>) -> u32
         if v1[i] != v2[i] {
             distance += 1;
         }
+    }
+    distance
+}
+
+pub fn euclidean_distance<T>(v1: &Vec<T>, v2: &Vec<T>) -> T
+    where T: Copy + Sub<Output = T> + Mul<Output = T> + self::num::Zero {
+    let mut distance: T = T::zero();
+    for i in 0usize .. v1.len() {
+        let op1: T = v1[i];
+        let op2: T = v2[i];
+        distance = distance + ((op1 - op2) * (op1 - op2));
     }
     distance
 }
