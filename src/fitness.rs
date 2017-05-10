@@ -92,6 +92,7 @@ pub fn n_queens (ind: &Vec<i64>) -> f64 {
 
 pub fn labirinth_minimum_path (ind: &Vec<i64>) -> f64 {
     let mut steps: usize = 0;
+    let mut headbutts: usize = 0;
     let labirinth: Vec<Vec<u8>> = vec![
                                 vec![0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
                                 vec![0,0,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,0,0],
@@ -131,29 +132,29 @@ pub fn labirinth_minimum_path (ind: &Vec<i64>) -> f64 {
 
     for i in 0usize .. ind.len() {
         match ind[i] {
-            1 => {
-                x = match labirinth[x-1][y] {
-                    1 => x - 1,
-                    _ => x,
+            1 => {  // Left
+                match labirinth[x-1][y] {
+                    1 => {x = x - 1; steps += 1},
+                    _ => {headbutts += 1},
                 };
             }
 
-            2 => {
-                x = match labirinth[x+1][y] {
-                    1 => x + 1,
-                    _ => x,
+            2 => { // Right
+                match labirinth[x+1][y] {
+                    1 => {x = x + 1; steps += 1},
+                    _ => {headbutts += 1},
                 };
             }
-            3 => {
-                y = match labirinth[x][y+1] {
-                    1 => y + 1,
-                    _ => y,
+            3 => { // Down
+                match labirinth[x][y+1] {
+                    1 => {y = y + 1; steps += 1},
+                    _ => {headbutts += 1},
                 };
             }
-            4 => {
-                y = match labirinth[x][y-1] {
-                    1 => y - 1,
-                    _ => y,
+            4 => { // Up
+                match labirinth[x][y-1] {
+                    1 => {y = y - 1; steps += 1},
+                    _ => {headbutts += 1},
                 };
             }
             _ => {
@@ -165,7 +166,9 @@ pub fn labirinth_minimum_path (ind: &Vec<i64>) -> f64 {
             break;
         }
     }
-    1.0 - (steps as f64 / 100.0)
+    let total_steps: f64 = (steps + headbutts) as f64;
+    (steps as f64 / total_steps) - (headbutts as f64 / total_steps)
+    // 1.0 - (steps as f64 / 100.0)
     // ((final_x as i8 - x as i8).abs() + (final_y as i8 - y as i8).abs()) as f64
 }
 
