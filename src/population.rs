@@ -240,7 +240,6 @@ impl<T> Population<T>
         if let Err(e) = writeln!(average_file, "{}\t{}",iter,average_fitness) {
             println!("{}",e);
         }
-
     }
 }
 
@@ -283,6 +282,26 @@ impl Population<i64> {
         println!["Population's fitness:"];
         for i in 0 .. self.pop_size {
             print!(" {} ",self.fit_array[i as usize]);
+        }
+    }
+
+    pub fn genetic_variability(&self, iter: u64) {
+        let mut variability: i64 = 0;
+        for i in 0usize .. ((self.ind_size - 1) as usize) {
+            for j in i .. self.ind_size as usize {
+                variability = variability + helpers::euclidean_distance(&self.individuals[i],&self.individuals[j]);
+            }
+        }
+
+        let mut variability_file =
+            OpenOptions::new()
+            .write(true)
+            .append(true)
+            .open("variability.log")
+            .unwrap();
+
+        if let Err(e) = writeln!(variability_file, "{}\t{}",iter,variability) {
+            println!("{}",e);
         }
     }
 
