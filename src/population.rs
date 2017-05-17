@@ -25,8 +25,8 @@ use helpers::SimpleStepRange;
 // #[derive(Debug, Clone)]
 pub struct Population<T>
     where T: Clone {
-    pub pop_size: u64,
-    pub ind_size: u64,
+    pub pop_size: usize,
+    pub ind_size: usize,
     pub individuals: Vec<Vec<T>>,
     pub fit_array: Vec<f64>,
     pub lower_bound: f64,
@@ -59,10 +59,10 @@ impl<T> Population<T>
         let args: Vec<String> = helpers::parse_arguments();
 
 
-        let p_size: u64 = args[1].trim().parse()
+        let p_size: usize = args[1].trim().parse()
             .expect("Not a valid number");
 
-        let i_size: u64 = args[2].trim().parse()
+        let i_size: usize = args[2].trim().parse()
             .expect("Not a valid number");
 
         let lb: f64 = args[3].trim().parse()
@@ -222,9 +222,14 @@ impl<T> Population<T>
         let mut rng = rand::thread_rng();
         // new_fitnesses.push(self.fit_array[last_chosen]);
 
-        let new_percentage = 0.4;
+        let mut new_percentage = 0.4;
 
-        for i in SimpleStepRange(0usize, self.pop_size as usize, 2) {
+        let new_range = if self.generation_gap == true {(new_percentage * self.pop_size as f32).floor() as usize} else {self.pop_size};
+        if new_range % 2 != 0 {
+            new_range = new_range - 1;
+        }
+
+        for i in SimpleStepRange(0usize, new_range, 2) {
             last_chosen = (&self.selection_function)(self);
             loop {
                 new_chosen = (&self.selection_function)(self);
@@ -249,8 +254,16 @@ impl<T> Population<T>
             new_fitnesses.push(self.fit_array[new_chosen]);
         }
 
-        self.individuals.clone_from(&new_pop);
-        self.fit_array.clone_from(&new_fitnesses);
+        if self.generation_gap == true {
+            self.individuals.clone_from(&new_pop);
+            self.fit_array.clone_from(&new_fitnesses);
+        } else {
+            let pos_range = Range::new(0usize, self.pop_size);
+            for i in 0usize .. new_range {
+                let random_pos = pos_range.ind_sample(&mut rng);
+                self.individuals[random_pos] = new_pop.pop().unwrap();
+            }
+        }
 
         self.mutate_all();
 
