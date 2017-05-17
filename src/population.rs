@@ -1,12 +1,15 @@
 #![allow(unused_imports)]
 #![allow(unused_variables)]
 #![allow(unused_mut)]
+#![allow(non_snake_case)]
 
 extern crate rand;
+extern crate num;
 
 use population::rand::Rng;
 use population::rand::distributions::{IndependentSample, Range};
 use population::rand::distributions::normal::StandardNormal;
+use population::num::Float;
 
 use std::process;
 use std::fs::OpenOptions;
@@ -32,8 +35,11 @@ pub struct Population<T>
     pub mut_chance: f64,
     pub has_elitism: bool,
     pub num_of_generations: u64,
+    pub current_generation: u64,
     pub tournament_size: u64,
     pub marked_for_evaluation: Vec<bool>,
+    pub linear_scaling: bool,
+    pub generation_gap: bool,
     pub crossover_function: fn(&mut Vec<T>, &mut Vec<T>),
     pub selection_function: fn(&mut Population<T>) -> usize,
     pub fitness_function: fn(&Vec<T>) -> f64,
@@ -82,6 +88,16 @@ impl<T> Population<T>
             _ => false,
         };
 
+        let linear_scaling_option = match args[14].to_uppercase().as_ref() {
+            "TRUE" => true,
+            _ => false,
+        };
+
+        let generation_gap_option = match args[15].to_uppercase().as_ref() {
+            "TRUE" => true,
+            _ => false,
+        };
+
         let pop: Population<T> = Population::<T> {
             pop_size: p_size,
             ind_size: i_size,
@@ -93,8 +109,11 @@ impl<T> Population<T>
             mut_chance: m_chance,
             has_elitism: elitism_option,
             num_of_generations: n_gens,
+            current_generation: 0,
             marked_for_evaluation: vec![true; p_size as usize],
             tournament_size: t_size,
+            linear_scaling: linear_scaling_option,
+            generation_gap: generation_gap_option,
             crossover_function: cross_function,
             selection_function: select_function,
             fitness_function: fit_function,
@@ -165,6 +184,31 @@ impl<T> Population<T>
         (best_index,worst_index)
     }
 
+    pub fn fitness_scaling(&self) -> Vec<f64> {
+       let (best,worst) = self.get_best_and_worst_individual();
+        let fmin = self.fit_array[worst];
+        let fmax = self.fit_array[best];
+        let favg = self.fit_array.iter().fold(0.0, |a, &b| a + b) / self.fit_array.len() as f64;
+        let c: f64 = 1.2 * (2.0 / 1.2).powf(self.current_generation as f64 / self.num_of_generations as f64);
+        let alpha: f64;
+        let beta: f64;
+        let mut scaled_fitness_array: Vec<f64> = Vec::new();
+        match fmin > (c * favg - fmax) / (c - 1.0) {
+            true => {
+                alpha = (favg * (c - 1.0)) / (fmax - favg);
+                beta = (favg * (fmax - c * favg)) / (fmax - favg);
+            }
+            false => {
+                alpha = favg / (favg - fmin);
+                beta = (-fmin * favg) / (favg - fmin);
+            }
+        }
+        for i in 0usize .. self.fit_array.len() {
+            scaled_fitness_array.push(self.fit_array[i] * alpha + beta);
+        }
+        scaled_fitness_array
+    }
+
     pub fn evolve_population(&mut self) {
         // let (best_ind_index, worst_ind_index) = self.get_best_and_worst_individual();
         let best_ind_index = self.get_best_individual();
@@ -177,6 +221,8 @@ impl<T> Population<T>
         let between = Range::new(0.0, 100.0);
         let mut rng = rand::thread_rng();
         // new_fitnesses.push(self.fit_array[last_chosen]);
+
+        let new_percentage = 0.4;
 
         for i in SimpleStepRange(0usize, self.pop_size as usize, 2) {
             last_chosen = (&self.selection_function)(self);
