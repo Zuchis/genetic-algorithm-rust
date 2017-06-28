@@ -8,11 +8,14 @@
 \usepackage[brazil]{babel}
 \usepackage[T1]{fontenc}
 \usepackage[scaled=0.85]{beramono}
+%\usepackage[font=small,labelfont=bf,tableposition=top]{caption}
 \usepackage{csquotes}
 \usepackage{listings}
 \usepackage{color}
 \usepackage{amsmath}
 \usepackage{graphicx}
+\usepackage{changepage}
+%\usepackage[table,xcdraw]{xcolor}
 \renewcommand\lstlistingname{C\'odigo}
 \setlength\parindent{20pt}
 
@@ -33,7 +36,7 @@
 \sloppy
 
 %titulo
-\title{Relatório Técnico Sobre uma Ferramenta para Algoritmos Genéticos}
+\title{Relatório Técnico Sobre uma Ferramenta para Algoritmos Genéticos - Parte 2}
 %autor
 \author{Vinicius Bruch Zuchi\inst{1} }
 
@@ -49,295 +52,506 @@
 
 \section{Introdução}
 
-Algoritmos genéticos (AGs) são uma classe de algoritmos meta-heurísticos cujo objetivo é melhorar uma solução para um problema até que essa 
-atinja, idealmente, o ótimo e caso não seja possível, o mais próximo possível.
+No trabalho anterior, foi introduzida uma ferramenta desenvolvida para a solução de 
+diversos problemas diferentes utilizando algoritmos genéticos. Naquela primeira parte, 
+as funcionalidades fundamentais foram desenvolvidas para que a ferramenta tivesse a 
+capacidade de ser configurável e que permitisse a modelagem dos problemas listados. 
 
-Os algoritmos genéticos são inspirados pela teoria da seleção natural de Charles Darwin e para alcançar o seu objetivo são utilizados 
-conceitos oriundos da teoria da seleção natural, como uma população de indivíduos, adaptabilidade e evolução natural, assim como conceitos 
-da biologia, como gene, cromossomos, alelos, genótipo e fenótipo. A evolução natural nos algoritmos genéticos é simulada através do que é 
-conhecido como operadores genéticos, tais como: seleção dos melhores indivíduos, cruzamento entre indivíduos e mutação genética.
-
-Como a evolução ocorre sobre uma população, os algoritmos genéticos também precisam operar sobre uma população, ou seja, várias soluções 
-diferentes, ao invés de somente uma. Para calcular o quão boa cada uma das soluções é, utiliza-se uma função conhecida como função de 
-adaptabilidade (do inglês \textit{fitness function}), uma das partes mais importantes de se modelar um algoritmo genético é escolher uma 
-função de \textit{fitness} condizente com a natureza do problema que está sendo resolvido. Além disso, também é de substancial importância 
-escolher a codificação correta dos indivíduos, isto é, estruturalmente, como estes serão representados.
-
-Um algoritmo genético possui uma considerável quantidade de parâmetros disponíveis e combinações disponíveis e também precisa repetir 
-as mesmas funções diversas vezes pois opera sobre uma população de indivíduos, e não somente sobre um. Por estes motivos, é necessário 
-que a ferramenta criada para executar AGs seja modular, eficiente e otimizada, para alcançar tais propósitos, a linguagem de programação 
-escolhida para a ferramenta foi a linguagem Rust.
-
-Rust é uma linguagem de programação de baixo nível, com tipagem estática e forte. A linguagem foi projetada com os objetivos 
-de ser rápida, fácil de ser paralelizada e ter segurança de memória, prevenindo a ocorrência de condições de corrida, estouros 
-de pilha, e acessos a posições de memória não inicializadas ou desalocadas~\cite{Matsakis:2014:RL:2692956.2663188}. 
-
-\section{Parametrização da Ferramenta}
-
-Para a parametrização da ferramenta, foi criado um arquivo de configuração, no qual cada linha possui o nome de um parâmetro, seguido de 
-seu respectivo valor, esse arquivo é então interpretado na ferramenta em tempo de execução, atribuindo cada parâmetro do arquivo de 
-configuração para seu equivalente em uma estrutura que representa a população.
-
-Os parâmetros disponíveis estão listados abaixo: 
+As seguintes funcionalidades foram desenvolvidas na primeira parte:
 \begin{itemize}
-    \item tipo do gene: pode ser inteiro, real ou binário.
-    \item tamanho da população.
-    \item tamanho de cada indivíduo.
-    \item limite inferior e superior para valores do tipo inteiro ou real.
-    \item probabilidade de cruzamento e mutação.
-    \item número de iterações.
-    \item método de seleção.
-    \item tamanho do torneio, caso o método de seleção seja torneio.
-    \item método de cruzamento.
-    \item função de adaptabilidade.
-    \item método de mutação.
-    \item elitismo booleano para ativar ou desativar o elitismo.
+    \item Interpretador de um arquivo de configuração, com diversos parâmetros 
+        configuráveis, os quais são: tipo da codificação do indivíduo (podendo ser 
+        binária, inteira, inteira permutável ou real), tamanho da população, tamanho do 
+        indivíduo, limites inferior e superior para codificações não binárias, rotinas de 
+        seleção, mutação e \textit{crossover} a serem utilizadas;
+    \item Rotinas de seleção: roleta e torneio;
+    \item Rotinas de crossover: blx, pmx, crossover uniforme e crossover de 1 ponto;
+    \item Algoritmos de mutação: bit flip, swap position, delta mutation, gaussian mutation;
+    \item Integração das partes do algoritmo evolutivo;
+    \item Geração do gráfico de convergência
 \end{itemize}
 
-Internamente no programa, há uma estrutura que representa uma população, e nesta há um atributo para cada um desses parâmetros, para o caso 
-dos parâmetros que são métodos, é armazenado na estrutura ponteiros para funções existentes em seus respectivos módulos.
+\vspace{1cm}
 
-Para cada parte do algoritmo genético como: cruzamento, \textit{fitness}, mutação, população e seleção, há um módulo correspondente que 
-implementa todas as funções relacionadas a estas partes, isso permite uma melhor organização da ferramenta e facilita a adição de novas funcionalidades.
+Mesmo que o Algoritmo Evolutivo estivesse funcionando com as funcionalidades desenvolvidas 
+na primeira parte, ainda estava faltando algo que poderia ser problemático para problemas 
+mais complexos: o controle da pressão seletiva e da variabilidade genética. 
 
-\section{Seleção}
+O controle da pressão seletiva e da variabilidade genética são passos importantes pois 
+permite que os indivíduos permaneçam mais espalhados pelo espaço de busca, e evita a 
+convergência prematura, que pode em consequência fazer com que a população fique presa 
+em um máximo ou mínimo local.
 
-Essa seção discute o conceito e implementação dos métodos de seleção implementados, todos os métodos de seleção recebem como argumento uma população e 
-retornam o índice do indivíduo escolhido.
+Para resolver esse problemas, vários algoritmos e estratégias para o controle da variabilidade 
+e pressão seletiva foram implementados. Abaixo segue os algoritmos que foram implementados 
+para esta segunda parte:
+\begin{itemize}
+    \item Escalonamento linear;
+    \item Generation gap;
+    \item Fitness sharing;
+    \item Fator de crowding
+\end{itemize}
 
-\subsection{Elitismo}
+\vspace{1cm}
 
-A ferramenta possui a opção de ligar ou desligar o elitismo. Se o elitismo for ligado, antes de se iniciar a seleção da nova geração, 
-o algoritmo armazena o melhor indivíduo e ao final da iteração da nova geração, este indivíduo é adicionado novamente à população, sempre 
-na mesma posição para evitar a perda demasiadamente rápida da variabilidade genética.
+Além desses algoritmos listados acima, outras funcionalidades adicionais também foram implementadas 
+nesta segunda parte, estas incluem: 
+\begin{itemize}
+    \item Geração do gráfico da variabilidade genética;
+    \item Adição de parâmetros no arquivo de configuração;
+    \item Suporte a mais de uma execução do AG por execução do programa, ao final de todas as 
+        execuções, são tirados dados estatísticos, como a média dos melhores, media da media, e 
+        média da variabilidade de cada geração, além disso há também os melhores fitness de cada 
+        execução e em qual geração o ótimo foi encontrado.
+\end{itemize}
 
-\subsection{Roleta}
+\vspace{1cm}
 
-Este método possui uma certa probabilidade para selecionar qualquer indivíduo da população, todos possuem uma chance de serem escolhidos, 
-mesmo que seja praticamente impossível. Este método inicialmente realiza um somatório sobre todos os \textit{fitnesses}, procede então para a 
-geração de um número aleatório entre zero e o resultado deste somatório. O algoritmo então irá sequencialmente somar o \textit{fitness} de cada 
-indivíduo em uma variável acumuladora que se inicia em zero. Para cada soma feita, é verificado se o acumulador passou o valor do número gerado 
-aleatoriamente, e caso positivo, então esse será o indivíduo escolhido, desta maneira, indivíduos com um \textit{fitness} maior terá mais chances 
-de ser escolhido, pois a probabilidade do valor somado passar o número aleatório é maior.
+\section{Estratégia Para Controle da Pressão Seletiva}
 
-\subsection{Torneio}
+Nesta seção serão discutidas as estratégias implementadas para o controle da pressão seletiva e da 
+variabilidade genética e quais foram os procedimentos para fazê-las. Para todas as estratégias, há 
+um valor booleano correspondente a cada uma delas no arquivo de configuração da ferramenta que 
+permite a ativação e desativação de cada uma.
 
-Este método seleciona k indivíduos aleatoriamente, sendo k o número escolhido para ser o tamanho do torneio, e para todos os indivíduos selecionados 
-verifica-se qual deles possui o maior \textit{fitness}, aquele que possuir o maior, será o escolhido pelo algoritmo. Este método não considera todos os 
-indivíduos pois o número escolhido para o torneio não deve ser o mesmo do que o tamanho da população, e quanto maior o número de participantes do torneio, 
-mais elitista a seleção se tornará.
+\subsection{Escalonamento Linear}
 
-\section{Crossover}
+Como o nome sugere, o escalonamento linear realiza um escalonamento no fitness de toda a população, 
+fazendo um ajuste em sua escala e deixando o valor máximo escalonado igual ao valor médio escalonado 
+multiplicado por uma constante C.
 
-Essa seção discute sobre as estratégias utilizadas para realizar o cruzamento (\textit{crossover}) entre dois indivíduos, e também lista
-os métodos implementados, todas as funções de cruzamento recebe como argumento duas referências mutáveis para vetores, uma para 
-cada pai respectivamente. 
-
-Quando os algoritmos de cruzamento operam sobre esses dois vetores, eles estão manipulando-os 
-diretamente. A manipulação direta nos pais sem gerar filhos permite que os algoritmos de 
-cruzamento não necessitem clonar os pais, como a operação de clonagem de vetores 
-possui um alto custo computacional, essa é uma técnica de otimização.
-
-\subsection{One-point Crossover}
-
-Essa técnica de cruzamento seleciona apenas um ponto de corte e utiliza esse ponto para dividir os dois 
-pais em duas partes, os filhos são então gerados combinando as partes de pais diferentes de maneira 
-intercalada (sempre a primeira parte com a segunda).
-
-Para atingir esse feito, os dois vetores são divididos em dois no ponto selecionado, o primeiro pai tem a segunda parte do segundo 
-pai anexado a si e vice-versa.
-
-\subsection{Uniform Crossover}
-
-Nesta técnica, um loop itera sobre todas as posições possíveis dos vetores dos pais e um número aleatório
-é gerado e comparada com uma certa probabilidade, se o número gerado for maior que a probabilidade então 
-ocorrerá cruzamento nesta posição, os filhos gerados terão naquela posição os valores dos pais trocados.
-
-Na ferramenta, o algoritmo simplesmente verifica a probabilidade e o número aleatório gerado e se caso 
-o cruzamento ocorra em uma certa posição x, é feita uma simples troca entre os valores correspondentes 
-daquela posição entre os pais.
-
-\subsection{Blend Crossover}
-
-Técnica de crossover para população com codificação real. Para cada posição dos genes dos indivíduos, 
-é gerado um valor aleatório em um intervalo cujos limitantes são os valores dos genes dos pais naquela 
-posição específica, esses limitantes são ligeiramente alterados por um certo delta arbitrário multiplicado 
-por um coeficiente que representa o quão distante esses dois valores estão um do outro.
-
-\section{Mutação}
-
-Nesta seção serão discutidos os métodos de mutação implementados para a ferramenta. Todas as funções de 
-mutação recebem como argumento uma população de um certo tipo, o índice do indivíduo sofrendo mutação, e 
-a posição específica do gene na qual a mutação ocorrerá
-
-\subsection{Bit-Flip}
-
-Este método de mutação é extremamente simples, utilizado para populações com codificação binária, 
-o método simplesmente inverte o bit na posição selecionada.
-
-Na ferramenta implementada, a população com codificação binária é tratada como sendo \textit{booleans}, 
-por isso o bit-flip simplesmente usa o operador \textit{not} denotado por '!' para a inversão do bit.
-
-\subsection{Delta Mutation}
-
-Este método utiliza os limites inferior e superior da população para gerar um número aleatório entre os limitantes, 
-na posição selecionada do gene, será acrescentado ou subtraído (50\% de chance para cada um dos dois) o 
-equivalente a dez porcento do valor aleatório gerado. Após a adição dessa pequena variação, é verificado 
-se o novo valor não passa dos limitantes, caso passe, o valor é então modificado para o limitante que 
-está mais próximo.
-
-\subsection{Int Delta Mutation} 
-
-Esse método é exatamente igual ao anterior, a única diferença é que este é adaptado para populações 
-do tipo inteiro, por isso os limitantes são arredondados antes de realizar o resto da mutação.
-
-\subsection{Swap-Position}
-
-Esse método seleciona uma posição aleatória do indivíduo que não seja a atual posição escolhida 
-para mutação, os valores do gene nessas duas posições são então trocados.
-
-\subsection{Gaussian Mutation}
-
-Mutação que altera o valor do gene em uma posição específica através da função gaussiana, utilizando o 
-valor do gene como média e 10\% do intervalo dos limitantes da população como desvio padrão.
-
-\section{Outputs}
-
-Atualmente a ferramenta conta com um método de output que armazena em arquivos os valores do \textit{fitness}
-do melhor indivíduo e a média do \textit{fitness} da população. 
-
-Esses arquivos são formatados de uma maneira que podem ser utilizados por ferramentas de \textit{plotting}
-para gerar um gráfico de convergência.
-
-\section{Problemas Abordados}
-
-Nesta seção serão discutidas as estratégias utilizadas para solucionar os problemas propostos utilizando 
-a ferramenta para AGs implementada, consequentemente, também irá abordar como a função de adaptabilidade 
-foi implementada para cada um desses problemas. Como os problemas abordados foram simples, para todos 
-eles foram utilizadas populações de tamanho 50 e foram feitas 100 iterações. Além disso foi utilizado 
-o método de seleção torneio para todos os problemas pois facilita as comparações das convergências.
-
-\subsection{Bits Alternados}
-
-Nesse problema, o objetivo era encontrar indivíduos que possuíssem a maior quantidade de bits alternados 
-tomados em pares (0 e 1 ou 1 e 0) de maneira sequencial. 
-
-A função de adaptabilidade para esse problema percorre o gene inteiro do indivíduo e para cada vez que encontra 
-dois bits consecutivos alternados, acrescenta-se o \textit{fitness} em 1, portanto o \textit{fitness} da solução ótima nesse 
-caso será de $n - 1$, sendo $n$ o tamanho escolhido para o gene de um indivíduo.
-
-Para este problema, foi utilizado a mutação bit flip e o crossover uniforme, com uma população com indivíduos de tamanho 
-20.
+Para implementar essa estratégia, foram simplesmente utilizadas as fórmulas do 
+escalonamento linear, e no método de seleção, caso o escalonamento linear esteja ativado, 
+um array com os fitness escalonados são utilizados no lugar dos fitness crú.
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=.5\textwidth]{pictures/bin-alternate}
+    \begin{minipage}{0.47\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pictures/queensvarscalingoff}
+        \caption{Problema das N Rainhas sem Escalonamento Linear}
+        \label{f310}
+    \end{minipage}
+    \begin{minipage}{0.47\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pictures/64queensvariabilityscalingon}
+        \caption{Problema das N Rainhas com Escalonamento Linear}
+        \label{linscaling}
+    \end{minipage}
 \end{figure}
 
-O melhor indivíduo alcançou o fitness 19, o que era o ótimo nesse caso.
+Na figura~\ref{linscaling}, apesar de ter uma alta oscilação, pode-se perceber uma 
+diferença no decaimento da variabilidade genética.
 
-\subsection{Minimização da Função Esférica}
+\subsection{Generation Gap}
 
-O objetivo é minimizar a função: $\sum^{n}_{i=1} i ^ 2$, sendo $n$ o tamanho escolhido para o gene de um indivíduo.
+O generation gap utiliza o modelo populacional de estado estável, onde os novos 
+indivíduos substituem somente uma parcela da população antiga, desacelerando a velocidade 
+da evolução. 
 
-A função de adaptabilidade primeiramente calcula o valor do somatório, e retorna o  valor calculado, normalizado, 
-armazenando o maior valor já encontrado pela população o subtraindo a função objetivo desse maior valor encontrado. 
-Dessa maneira, quanto menor for o resultado do somatório, maior será o fitness.
+Para implementar essa estratégia, foi utilizada uma porcentagem que aumenta gradualmente 
+entre 20\% e 90\% para estabelecer o tamanho da nova população gerada. Após calcular a 
+porcentagem, a próxima parte é selecionar indivíduos aleatórios da população antiga para 
+serem substituídos, garantido que nenhuma posição seja escolhida duas vezes.
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=.5\textwidth]{pictures/quadratic}
+    \begin{minipage}{0.47\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pictures/queensvarscalingoff}
+        \caption{Problema das N Rainhas sem Generation Gap}
+        \label{f310}
+    \end{minipage}
+    \begin{minipage}{0.47\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pictures/64queensvariabilitygengap}
+        \caption{Problema das N Rainhas com Generation Gap}
+        \label{gengap}
+    \end{minipage}
 \end{figure}
 
-Tanto o melhor indivíduo quanto a média foram capazes de convergir muito bem, foi utilizado a mutação delta com 
-o crossover blx.
+Comparando a figura~\ref{gengap} com a figura~\ref{linscaling}, pode-se ver que o 
+generation gap obteve um sucesso muito maior em tratar a variabilidade, o decaimento 
+é mais gradual e não sofre de grandes oscilações.
 
-\subsection{Paridade Alternada}
+\subsection{Fitness Sharing}
 
-Este problema é semelhante ao problema de bits alternados, a diferença é que neste a codificação da população 
-é do tipo inteiro e é verificado se os elementos tomados a pares sequencialmente possuem paridades alternadas 
-(par e ímpar ou ímpar e par).
+O fitness sharing utiliza o conceito de nichos para controlar o crescimento indiscriminado 
+de uma sub-população, utilizando a ideia de que indivíduos no mesmo nicho precisam 
+compartilhar os recursos com outros indivíduos que pertençam ao mesmo nico.
 
-A função de adaptabilidade itera sobre todo o gene do indivíduo e cada vez que encontra dois elementos com 
-paridades alternadas acrescenta-se o \textit{fitness} em 1. Assim como o problema de bits alternados, 
-se alcança o ótimo neste problema quando o \textit{fitness} do indivíduo for igual a $n - 1$, sendo $n$
-o tamanho do indivíduo.
+Ou seja, quanto mais indivíduos que possuam o fitness semelhante, menor esse fitness 
+ficará, desencorajando a convergência prematura de uma sub-população.
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=.5\textwidth]{pictures/parity}
+    \begin{minipage}{0.47\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pictures/queensvarscalingoff}
+        \caption{Problema das N Rainhas sem Fitness Sharing}
+        \label{f310}
+    \end{minipage}
+    \begin{minipage}{0.47\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pictures/64queensvariabilitysharing}
+        \caption{Problema das N Rainhas com Fitness Sharing}
+        \label{sharing}
+    \end{minipage}
 \end{figure}
 
-Este foi o problema que mais demorou para convergir em 100 iterações para uma população de indivíduos de tamanho 20, 
-foi utilizada a mutação delta adaptada para inteiros com o crossover uniforme, apesar da relativa demora para 
-convergir, a média obteve um desempenho consistente.
+Dentre todas as estratégias de controle da variabilidade, o fitness sharing, tendo o seu 
+exemplo na figura~\ref{sharing}, é o que menos demonstrou decaimento na variabilidade 
+genética, isso provavelmente devido ao fato de que é a estratégia com a maior punição 
+para indivíduos semelhantes.
 
-\subsection{Maximização da Produção de Rádios}
+\subsection{Fator de Crowding}
 
-Este problema é mais específico. O objetivo é maximizar o lucro com a produção de relógios, sendo que 
-há dois tipos: normal e de luxo. Os normais fornecem um valor de 30 por unidade e os de luxo fornecem um 
-valor de 40 por unidade. Os relógios normais necessitam de 1 homem-dia para serem produzidos e os 
-relógios de luxo necessitam de 2 homens-dia para serem produzidos, sendo que a fábrica conta com 
-40 homens-dia. 
+O fator de crowding também tem a intenção de diminuir a competição inter-espécies. Para 
+cada indivíduo novo gerado, é selecionada uma certa quantidade (chamada de fator de 
+crowding) de indivíduos aleatórios, e aquele que for mais semelhante ao novo indivíduo 
+será substituído por este.
 
-Há um limite na quantidade de pessoas que podem trabalhar em cada uma das duas linhas, na de relógios 
-normais é de 24 pessoas e na de relógios de luxo é de 32 pessoas, consequentemente, só podem ser 
-produzidos 24 relógios normais e 16 relógios de luxo diariamente.
-
-Para maximizar o lucro, a função objetivo é dada por $\phi = 30 * st + 40 * lx$, sendo $st$ o número 
-de relógios normais e $lx$ o número de relógios de luxo. A função de adaptabilidade nesse caso é dada 
-por: $f = \phi + r * h$, na qual $\phi$ é a função objetivo, $h$, é uma função de penalidade e $r$ é 
-um coeficiente que representa o peso dado para a função de penalidade. Para este problema, o coeficiente 
-escolhido foi -1.
-
-Como este problema possui um limite de trabalhadores, há uma restrição dada por: $st + 2 * lx \leq 40$. 
-Portanto, a função de adaptabilidade resulta em: \\ $f = 30 * st + 40 * lx - \max(0,st + 2 * lx - 40)$.
-
-O max garante que o indivíduo não seja penalizado caso a quantidade de homens-dia não ultrapasse 40. 
-Porém, ainda há um problema nessa modelagem, os valores não estão normalizados, desta maneira, é mais 
-vantajoso violar a restrição do que obedecê-la, é necessário normalizar a função objetivo e a 
-função de penalidade. O resultado final ficará: \\ \\ $f = \frac{30 * st + 40 * lx}{1360} - 
-\max(0,\frac{st + 2 * lx - 40}{16})$.
-
-Para resolver esse problema, foi utilizado uma população de indivíduos com codificação binária, com 
-indivíduos de tamanho 10 (5 bits para representar a quantidade de relógios normais que varia entre 0 
-e 24, e 5 bits para representar a quantidade de relógios de luxo, que varia entre 0 e 16).
-
-No cálculo da função de fitness, o indivíduo primeiramente é dividido em dois vetores de tamanho 5, 
-um para cada uma das duas variáveis do problema. Esses dois vetores de binários são convertidos para 
-um valor em decimal, e este valor é normalizado para os limitantes de cada variável (0 a 24 e 0 a 16).
-
-Com os valores das variáveis convertidos e normalizados, a função por fim calcula o \textit{fitness}
-utilizando a fórmula supracitada, combinando as funções objetivo e de penalidade.
+Na ferramenta, o fator de crowding que apresentou os melhores resultados foi 2. Quanto 
+mais próximo de 0, o comportamento fica parecido com a utilização de nenhuma rotina, 
+com uma convergência prematura. Com um fator muito alto, a variabilidade fica demasiada 
+alta e a população não é capaz de evoluir.
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=.5\textwidth]{pictures/radio-factory}
+    \begin{minipage}{0.47\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pictures/queensvarscalingoff}
+        \caption{Problema das N Rainhas sem Crowding}
+        \label{f310}
+    \end{minipage}
+    \begin{minipage}{0.47\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pictures/64queensvariabilitycrowding}
+        \caption{Problema das N Rainhas com Crowding}
+        \label{crowding}
+    \end{minipage}
 \end{figure}
 
-Coincidentemente já havia um indivíduo com a melhor solução na geração inicial, e como o elitismo 
-foi utilizado, o melhor sempre permaneceu no topo. Considerando que nesse problema os indivíduos 
-possuem tamanho 10, a convergência foi consideravelmente rápida, porém a média da população não 
-se manteve consistente ao final da execução.
+Das estratégias de controle da variabilidade genética, o fator de crowding, representado 
+pela figura~\ref{crowding} foi o que obteve o pior resultado, o gráfico dá a impressão 
+de que está sendo feita uma busca aleatória.
 
-\subsection{Reconhecimento de Padrão Gráfico}
+\section{Problemas da Segunda Parte}
 
-Para resolver esse problema, o padrão gráfico, por possuir apenas duas cores, foi transformado em um 
-vetor de bits e a função de adaptabilidade simplesmente calcula uma distância de Hamming entre o 
-padrão gráfico e o indivíduo e subtrai o resultado do número 36, que é o máximo que se pode 
-atingir com essa operação.
+Nesta seção serão discutidos os problemas selecionados para fazer a segunda parte da 
+ferramenta de AG.
 
-Foi utilizado a mutação bit flip e o crossover uniforme.
+\subsection{N Rainhas}
+
+O problema das N rainhas consiste em dispor N rainhas em um tabuleiro de xadrez 
+$N \times N$ de forma que não haja nenhuma colisão entre todas as rainhas.
+
+Como as rainhas obrigatoriamente não podem estar em uma mesma coluna ou uma mesma linha, 
+a solução para a codificação foi a utilização de inteiros permutáveis com indivíduos de 
+tamanho N, onde cada gene representa uma coluna e o valor do gene uma linha, desta maneira 
+a codificação já restringe naturalmente a colisão em colunas e linhas.
+
+O cálculo do fitness então se resumiu a verificar as colisões nas diagonais entre as 
+rainhas, para fazer isso utilizou-se a fórmula para verificar se dois pontos estão
+alinhados diagonalmente. Esta fórmula é dada por: $|x1 - x2| = |y1 - y2|$.
+
+Para este problema utilizou-se uma população contendo 50 indivíduos, chance de crossover 
+de 80\%, chance de mutação 1\%, crossover pmx, mutação de troca entre 2 posições 
+aleatórias, método de seleção torneio de tamanho 2, com elitismo e generation gap 
+ativados.
+
+Foram realizadas 10 execuções para $N = 8,\ 16,\ 32,\ 64$ com 10000 iterações cada. O 
+fitness foi normalizado entre 0 e 1 para facilitar análises e visualizações.
+
+\begin{table}[]
+\centering
+\caption{Média e Desvio Padrão das N rainhas para N = 8, 16, 32 e 64}
+\label{nqueenstable}
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{N Rainhas} & \textbf{Media} & \textbf{Desvio Padrão} \\ \hline
+8                  & 1              & 0                      \\ \hline
+16                 & 1              & 0                      \\ \hline
+32                 & 1              & 0                      \\ \hline
+64                 & 1              & 0                      \\ \hline
+\end{tabular}
+\end{table}
+
+Como se pode ver na tabela~\ref{nqueenstable}, foi possível alcançar o ótimo 100\% das 
+vezes em todos os casos, abaixar a chance de mutação de 5\% para 1\% foi um ponto crucial 
+para que isso fosse possível, com a chance de mutação antiga só era atingido o ótimo 
+ocasionalmente para $N = 64$, com a mudança o ótimo é sempre alcançado.
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=.5\textwidth]{pictures/pattern-rec}
+    \begin{minipage}{0.47\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pictures/10exec64queensconvergence}
+        \caption{Problema das N Rainhas sem Crowding}
+        \label{10execconv}
+    \end{minipage}
+    \begin{minipage}{0.47\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pictures/10exec64queensvariability}
+        \caption{Problema das N Rainhas com Crowding}
+        \label{10execvar}
+    \end{minipage}
 \end{figure}
 
-Pode-se analisar que o melhor indivíduo foi capaz de atingir o ótimo, cujo valor da função objetivo 
-deveria ser 36.
+Nas figuras~\ref{10execconv} e~\ref{10execvar} pode-se ver os resultados das 10 execuções 
+para $N = 64$, e que as 10000 execuções foram quase insuficientes para se alcançar o 
+ótimo para esse valor de $N$. O generation gap permitiu um bom controle da variabilidade 
+e também a evolução gradual da população, observado pela média.
 
-\bibliographystyle{sbc}
-\bibliography{sbc-template}
+\subsection{Problema do Caminho Mínimo}
+
+Esse problema consiste em achar um caminho mínimo por um labirinto com obstáculos, onde 
+há um ponto de partida e um ponto de destino.
+
+Para a representação do labirinto, foi utilizada uma matriz com 0's e 1's, onde o número 
+1 representa as células com obstáculos. Quanto aos indivíduos, como o limite de 
+movimentos era 100, foram utilizados indivíduos de tamanho 100 contendo inteiros variando 
+entre 1 e 4, onde cada um desses números é então mapeado para uma das possíveis instruções, 
+que são a movimentação para a esquerda e direita, para cima e para baixo.
+
+No cálculo do fitness o movimento representado por cada indivíduo é simulado seguindo as 
+instruções uma por uma, quando um movimento é impedido por um obstáculo, não se muda a 
+célula da posição atual. O fitness é bonificado pela proximidade do destino, por um 
+sem ou com poucas colisões e pela verificação da chegada ao destino ou não. São aplicadas 
+penalidades por colisões e por caminhos repetidos do indivíduo.
+
+Porém a modelagem desse problema não foi bem sucedida, os resultados foram longe de 
+satisfatórios e por isso decidiu-se não colocar resultados nesse relatório
+
+\subsection{Problemas Enganadores}
+
+Os problemas enganadores conduzem a evolução da população a um caminho errôneo. Para contornar
+esse problema, é necessário que os parâmetros e as rotinas utilizadas no AG estejam devidamente 
+configuradas para um certo problema. 
+
+A seguir serão mostrados os resultados obtidos com o uso da ferramenta para solucionar os problemas 
+enganadores: f310, f320, f310s, f320s, d16 4 e d32 4. Para se ter um limiar, um SA também foi 
+utilizado para a solução desses problemas e seus resultados foram comparados com os do GA.
+
+No caso do GA, para todos os problemas, foi utilizada uma chance de crossover de 80\%, uma chance de 
+mutação de 1\%, crossover uniforme, mutação bit flip, método de seleção torneio de tamanho 2, elitismo 
+ativado e generation gap incremental com início de 20\%  de novos indivíduos até 90\%.
+
+Para o GA, os problemas f310 e f310s, 5000 iterações foram o suficiente para chegar ao ótimo. Para os 
+problemas f320 e f320, d16 4 e d32 4 foram utilizadas 100000 iterações. No caso do SA, foram utilizadas 
+500000 iterações para todos os casos. Para ambos, todos os problemas foram executados 10 vezes para 
+se obter a média e o desvio padrão.
+
+\begin{table}[]
+    \begin{adjustwidth}{-2cm}{}
+\centering
+\caption{Comparativo entre o AG e o SA para os diferentes problemas enganadores.}
+\label{gasatable}
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{F3 10}                                                                        & \textbf{AG}                             & \textbf{SA}                         \\ \hline
+Taxa de Sucesso (\%)                                                                  & 100\%                                   & 0\%                                 \\ \hline
+Média do Melhor Valor                                                                 & Media: 1 | Desvio Padrão: 0             & Media: 0.968 | Desvio Padrão: 0.01  \\ \hline
+\begin{tabular}[c]{@{}c@{}}Número de Avaliações para\\ encontrar o ótimo\end{tabular} & Media: 1475.6 | Desvio Padrão: 221.52   & -                                   \\ \hline
+\textbf{F3 20}                                                                        & \textbf{AG}                             & \textbf{SA}                         \\ \hline
+Taxa de Sucesso (\%)                                                                  & 100\%                                   & 0\%                                 \\ \hline
+Média do Melhor Valor                                                                 & Media: 1 | Desvio Padrão: 0             & Media: 0.892 | Desvio Padrão: 0.01  \\ \hline
+\begin{tabular}[c]{@{}c@{}}Número de Avaliações para\\ encontrar o ótimo\end{tabular} & Media: 45092.1 | Desvio Padrão: 3852    & -                                   \\ \hline
+\textbf{F3S 10}                                                                       & \textbf{AG}                             & \textbf{SA}                         \\ \hline
+Taxa de Sucesso (\%)                                                                  & 100\%                                   & 0\%                                 \\ \hline
+Média do Melhor Valor                                                                 & Media: 1 | Desvio Padrão: 0             & Media: 0.966 | Desvio Padrão: 0.007 \\ \hline
+\begin{tabular}[c]{@{}c@{}}Número de Avaliações para\\ encontrar o ótimo\end{tabular} & Media: 1809.6 | Desvio Padrão: 463.1    & -                                   \\ \hline
+\textbf{F3S 20}                                                                       & \textbf{AG}                             & \textbf{SA}                         \\ \hline
+Taxa de Sucesso (\%)                                                                  & 100\%                                   & 0\%                                 \\ \hline
+Média do Melhor Valor                                                                 & Media: 1 | Desvio Padrão: 0             & Media: 0.903 | Desvio Padrão: 0.01  \\ \hline
+\begin{tabular}[c]{@{}c@{}}Número de Avaliações para\\ encontrar o ótimo\end{tabular} & Media: 21955.4 | Desvio Padrão: 3966.3  & -                                   \\ \hline
+\textbf{D16 4}                                                                        & \textbf{AG}                             & \textbf{SA}                         \\ \hline
+Taxa de Sucesso (\%)                                                                  & 100\%                                   & 0\%                                 \\ \hline
+Média do Melhor Valor                                                                 & Media: 1 | Desvio Padrão: 0             & Media: 0.743 | Desvio Padrão: 0.01  \\ \hline
+\begin{tabular}[c]{@{}c@{}}Número de Avaliações para\\ encontrar o ótimo\end{tabular} & Media: 75875.1 | Desvio Padrão: 15012.2 & -                                   \\ \hline
+\textbf{D32 4}                                                                        & \textbf{AG}                             & \textbf{SA}                         \\ \hline
+Taxa de Sucesso (\%)                                                                  & 0\%                                     & 0\%                                 \\ \hline
+Média do Melhor Valor                                                                 & Media: 0.861 | Desvio Padrão: 0.02      & Media: 0.651 | Desvio Padrão: 0.01  \\ \hline
+\begin{tabular}[c]{@{}c@{}}Número de Avaliações para\\ achar o ótimo\end{tabular}     & -                                       & -                                   \\ \hline
+\end{tabular}
+    \end{adjustwidth}
+\end{table}
+
+Analisando a tabela~\ref{gasatable}, pode-se observar que o SA obteve um desempenho inferior 
+em todos os problemas e não foi capaz de encontrar o ótimo em nenhum dos casos, visto que 
+não é um algoritmo populacional e não possui estratégias avançadas para explorar o espaço 
+de busca como o GA possui.
+
+Todos os problemas tiveram o fitness normalizado entre 0 e 1 para facilitar as comparações 
+e também facilitar a visualização dos gráficos, pois todos terão a mesma referência.
+
+\begin{figure}[h!]
+    \centering
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pictures/f310convergence}
+        \caption{Convergência do f310 para o GA}
+        \label{f310}
+    \end{minipage}
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pictures/f310variability}
+        \caption{Variabilidade Genética do f310}
+    \end{minipage}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pictures/f320convergence}
+        \caption{Convergência do f320 para o GA}
+    \end{minipage}
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pictures/f320variability}
+        \caption{Variabilidade Genética do f320}
+    \end{minipage}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pictures/f310sconvergence}
+        \caption{Convergência do f310s para o GA}
+    \end{minipage}
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pictures/f310svariability}
+        \caption{Variabilidade Genética do f310s}
+    \end{minipage}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pictures/f320sconvergence}
+        \caption{Convergência do f320s para o GA}
+    \end{minipage}
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pictures/f320svariability}
+        \caption{Variabilidade Genética do f320s}
+    \end{minipage}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pictures/d164convergence}
+        \caption{Convergência do d164 para o GA}
+    \end{minipage}
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pictures/d164variability}
+        \caption{Variabilidade Genética do d164}
+    \end{minipage}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pictures/d324convergence}
+        \caption{Convergência do d324 para o GA}
+    \end{minipage}
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pictures/d324variability}
+        \caption{Variabilidade Genética do d324}
+        \label{d324}
+    \end{minipage}
+\end{figure}
+
+Analisando as figuras~\ref{f310} a~\ref{d324}, percebe-se que para o GA as funções 
+enganadoras tiveram um comportamento semelhante tanto na convergência do fitness 
+quanto na variabilidade genética, o uso do generation gap permitiu que a variabilidade 
+tivesse um decaimento gradual.
+
+A diferença que se pode observar, além das diferentes quantidades de iterações para se 
+chegar no ótimo, é a diferença de oscilação na variedade genética entre as funções 
+f310 e f310s, que tiveram uma oscilação menos densa, enquanto as outras tiveram uma 
+oscilação mais densa, devido a um maior espaço de busca.
+
+\begin{figure}[h!]
+    \centering
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pictures/saf310}
+        \caption{Convergência do f310 para o SA}
+        \label{sa310}
+    \end{minipage}
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pictures/saf320}
+        \caption{Convergência do f320 para o SA}
+    \end{minipage}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pictures/saf310s}
+        \caption{Convergência do f310s para o SA}
+    \end{minipage}
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pictures/saf320s}
+        \caption{Convergência do f320s para o SA}
+    \end{minipage}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pictures/sad164}
+        \caption{Convergência do d16 4 para o SA}
+    \end{minipage}
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pictures/sad324}
+        \caption{Convergência do d32 4 para o SA}
+        \label{sa324}
+    \end{minipage}
+\end{figure}
+
+Analisando as figuras~\ref{sa310} a~\ref{sa324}, pode-se observar que todas possuem um 
+comportamento muito similar. O SA apesar de conseguir ter um crescimento firme até certo 
+ponto, não é capaz de chegar ao ótimo pois sempre fica estagnado nos máximos locais dos 
+problemas enganadores.
+
+\section{Conclusão}
+
+Os algoritmos evolutivos são capazes de resolver uma alta gama de problemas diferentes e 
+sua implementação geralmente não requer um conhecimento profundo teórico sobre o problema 
+sendo modelado.
+
+A codificação e a concepção da função de fitness são dois passos cruciais para a resolução 
+adequada do problema sendo modelado.
+
+A utilização dos parâmetros adequados é também um passo igualmente crucial para o sucesso 
+do algoritmo evolutivo, sendo interessante buscar por maneiras de se encontrar os 
+parâmetros ideias sem recorrer à tentativa e erro.
+
+Além disso, é também necessário que haja um controle na pressão seletiva da população e 
+na variabilidade genética, a convergência prematura da população tem o risco de fazer 
+com que esta fique presa em um máximo local, não explorando completamente o espaço de 
+busca.
+
+Modelar um problema de caminho mínimo através de um algoritmo evolutivo é algo 
+extremamente difícil.
+
+%\bibliographystyle{sbc}
+%\bibliography{sbc-template}
 
 \end{document}
