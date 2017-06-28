@@ -40,6 +40,9 @@ pub struct Population<T>
     pub marked_for_evaluation: Vec<bool>,
     pub linear_scaling: bool,
     pub generation_gap: bool,
+    pub sharing: bool,
+    pub crowding: bool,
+    pub crowding_factor: u32,
     pub crossover_function: fn(&mut Vec<T>, &mut Vec<T>),
     pub selection_function: fn(&mut Population<T>) -> usize,
     pub fitness_function: fn(&Vec<T>) -> f64,
@@ -98,6 +101,19 @@ impl<T> Population<T>
             _ => false,
         };
 
+        let sharing_option = match args[16].to_uppercase().as_ref() {
+            "TRUE" => true,
+            _ => false,
+        };
+
+        let crowding_option = match args[17].to_uppercase().as_ref() {
+            "TRUE" => true,
+            _ => false,
+        };
+
+        let crowding_fc: u32 = args[18].trim().parse()
+            .expect("not a valid number");
+
         let pop: Population<T> = Population::<T> {
             pop_size: p_size,
             ind_size: i_size,
@@ -114,6 +130,9 @@ impl<T> Population<T>
             tournament_size: t_size,
             linear_scaling: linear_scaling_option,
             generation_gap: generation_gap_option,
+            sharing: sharing_option,
+            crowding: crowding_option,
+            crowding_factor: crowding_fc,
             crossover_function: cross_function,
             selection_function: select_function,
             fitness_function: fit_function,
@@ -203,13 +222,15 @@ impl<T> Population<T>
                 beta = (-fmin * favg) / (favg - fmin);
             }
         }
-        for i in 0usize .. self.fit_array.len() {
+        for i in 0 .. self.fit_array.len() {
             scaled_fitness_array.push(self.fit_array[i] * alpha + beta);
         }
         scaled_fitness_array
     }
 
-    pub fn evolve_population(&mut self) {
+
+    pub fn evolve_population(&mut self)
+        where Population<T>: HasSharing, T: PartialEq {
         // let (best_ind_index, worst_ind_index) = self.get_best_and_worst_individual();
         let best_ind_index = self.get_best_individual();
         let best_individual = self.individuals[best_ind_index].clone();
@@ -222,11 +243,15 @@ impl<T> Population<T>
         let mut rng = rand::thread_rng();
         // new_fitnesses.push(self.fit_array[last_chosen]);
 
-        let mut new_percentage = 0.4;
+        let mut new_percentage = 0.2 * (0.9 / 0.2).powf(self.current_generation as f32 / self.num_of_generations as f32);
 
-        let new_range = if self.generation_gap == true {(new_percentage * self.pop_size as f32).floor() as usize} else {self.pop_size};
+        let mut new_range = if self.generation_gap == true {(new_percentage * self.pop_size as f32).floor() as usize} else {self.pop_size};
         if new_range % 2 != 0 {
             new_range = new_range - 1;
+        }
+
+        if self.sharing == true {
+            self.fit_array = self.fitness_sharing();
         }
 
         for i in SimpleStepRange(0usize, new_range, 2) {
@@ -255,29 +280,53 @@ impl<T> Population<T>
         }
 
         if self.generation_gap == true {
-            self.individuals.clone_from(&new_pop);
-            self.fit_array.clone_from(&new_fitnesses);
-        } else {
-            let pos_range = Range::new(0usize, self.pop_size);
+            // let pos_range = Range::new(0usize, self.pop_size);
+            let mut ranges: Vec<usize> = Vec::new();
+            for i in 0usize .. self.pop_size {
+                ranges.push(i);
+            }
+            rng.shuffle(&mut ranges);
             for i in 0usize .. new_range {
-                let random_pos = pos_range.ind_sample(&mut rng);
+                // let random_pos = pos_range.ind_sample(&mut rng);
+                let random_pos = ranges.pop().unwrap();
                 self.individuals[random_pos] = new_pop.pop().unwrap();
             }
+        } else if self.crowding == true {
+            let pos_range = Range::new(0usize, self.pop_size);
+            for i in 0 .. new_pop.len() {
+                let mut smallest_distance = self.ind_size as u32;
+                let mut chosen: usize = 0;
+                for j in 0 .. self.crowding_factor as usize {
+                    let random_pos = pos_range.ind_sample(&mut rng);
+                    let distance = helpers::hamming_distance(&new_pop[i],&self.individuals[random_pos]);
+                    if distance < smallest_distance {
+                        smallest_distance = distance;
+                        chosen = random_pos;
+                    }
+                }
+                self.individuals[chosen] = new_pop[i].clone();
+            }
+        } else {
+            self.individuals.clone_from(&new_pop);
+            self.fit_array.clone_from(&new_fitnesses);
         }
 
         self.mutate_all();
+
 
         if self.has_elitism {
             self.individuals[0] = best_individual;
             self.fit_array[0] = best_fitness;
         }
         self.evaluate_all();
+        self.current_generation += 1;
     }
 
     pub fn write_statistics(&self, iter: u64) {
         let best: usize = self.get_best_individual();
         let best_fitness: f64 = self.fit_array[best];
         let average_fitness: f64 = self.get_average_fitness();
+
         let mut best_file =
             OpenOptions::new()
             .write(true)
@@ -344,24 +393,27 @@ impl Population<i64> {
         }
     }
 
-    pub fn genetic_variability(&self, iter: u64) {
+    pub fn genetic_variability(&self, iter: u64) -> i64 {
         let mut variability: i64 = 0;
-        for i in 0usize .. ((self.ind_size - 1) as usize) {
-            for j in i .. self.ind_size as usize {
+        for i in 0usize .. ((self.pop_size - 1) as usize) {
+            for j in i .. self.pop_size as usize {
                 variability = variability + helpers::euclidean_distance(&self.individuals[i],&self.individuals[j]);
             }
         }
 
-        let mut variability_file =
-            OpenOptions::new()
-            .write(true)
-            .append(true)
-            .open("variability.log")
-            .unwrap();
+        variability
 
-        if let Err(e) = writeln!(variability_file, "{}\t{}",iter,variability) {
-            println!("{}",e);
-        }
+        // let mut variability_file =
+        //     OpenOptions::new()
+        //     .write(true)
+        //     .append(true)
+        //     .open("variability.log")
+        //     .unwrap();
+
+        // if let Err(e) = writeln!(variability_file, "{}\t{}",iter,variability) {
+        //     println!("{}",e);
+        // }
+
     }
 
 }
@@ -396,6 +448,26 @@ impl Population<f64> {
         }
     }
 
+    pub fn genetic_variability(&self, iter: u64) {
+        let mut variability: f64 = 0.0;
+        for i in 0usize .. ((self.pop_size - 1) as usize) {
+            for j in i .. self.pop_size as usize {
+                variability = variability + helpers::euclidean_distance(&self.individuals[i],&self.individuals[j]);
+            }
+        }
+
+        let mut variability_file =
+            OpenOptions::new()
+            .write(true)
+            .append(true)
+            .open("variability.log")
+            .unwrap();
+
+        if let Err(e) = writeln!(variability_file, "{}\t{}",iter,variability) {
+            println!("{}",e);
+        }
+    }
+
 }
 
 
@@ -426,5 +498,98 @@ impl Population<bool> {
         for i in 0 .. self.pop_size {
             print!(" {} ",self.fit_array[i as usize]);
         }
+    }
+
+    pub fn genetic_variability(&self, iter: u64) -> u32 {
+        let mut variability: u32 = 0;
+        for i in 0usize .. ((self.pop_size - 1) as usize) {
+            for j in i .. self.pop_size as usize {
+                variability = variability + helpers::hamming_distance(&self.individuals[i],&self.individuals[j]);
+            }
+        }
+
+        variability
+
+        // let mut variability_file =
+        //     OpenOptions::new()
+        //     .write(true)
+        //     .append(true)
+        //     .open("variability.log")
+        //     .unwrap();
+
+        // if let Err(e) = writeln!(variability_file, "{}\t{}",iter,variability) {
+        //     println!("{}",e);
+        // }
+
+    }
+}
+
+pub trait HasSharing {
+    fn fitness_sharing(&self) -> Vec<f64>;
+}
+
+impl HasSharing for Population<i64> {
+    fn fitness_sharing(&self) -> Vec<f64> {
+        let mut shared_fitness_array: Vec<f64> = Vec::new();
+        let sigma: f64 = 0.2;
+        let alpha: f64 = 2.0;
+        for i in 0 .. self.pop_size {
+            let mut accumulator = 0.0;
+            for j in 0 .. self.pop_size {
+                if j == i {
+                    accumulator += 1.0;
+                } else {
+                    let distance = helpers::hamming_distance(&self.individuals[i], &self.individuals[j]) as f64 / self.ind_size as f64;
+                    let s = if distance < sigma {1.0 - (distance / sigma).powf(alpha)} else {0.0};
+                    accumulator += s;
+                }
+            }
+            shared_fitness_array.push(self.fit_array[i] / accumulator);
+        }
+        shared_fitness_array
+    }
+}
+
+impl HasSharing for Population<bool> {
+    fn fitness_sharing(&self) -> Vec<f64> {
+        let mut shared_fitness_array: Vec<f64> = Vec::new();
+        let sigma: f64 = 0.3;
+        let alpha: f64 = 2.0;
+        for i in 0 .. self.pop_size {
+            let mut accumulator = 0.0;
+            for j in 0 .. self.pop_size {
+                if j == i {
+                    accumulator += 1.0;
+                } else {
+                    let distance = helpers::hamming_distance(&self.individuals[i], &self.individuals[j]) as f64 / self.ind_size as f64;
+                    let s = if distance < sigma {1.0 - (distance / sigma).powf(alpha)} else {0.0};
+                    accumulator += s;
+                }
+            }
+            shared_fitness_array.push(self.fit_array[i] / accumulator);
+        }
+        shared_fitness_array
+    }
+}
+
+impl HasSharing for Population<f64> {
+    fn fitness_sharing(&self) -> Vec<f64> {
+        let mut shared_fitness_array: Vec<f64> = Vec::new();
+        let sigma: f64 = 0.3;
+        let alpha: f64 = 2.0;
+        for i in 0 .. self.pop_size {
+            let mut accumulator = 0.0;
+            for j in 0 .. self.pop_size {
+                if j == i {
+                    accumulator += 1.0;
+                } else {
+                    let distance = helpers::euclidean_distance(&self.individuals[i], &self.individuals[j]) as f64 / (self.ind_size as f64 * (self.upper_bound - self.lower_bound).powf(2.0));
+                    let s = if distance < sigma {1.0 - (distance / sigma).powf(alpha)} else {0.0};
+                    accumulator += s;
+                }
+            }
+            shared_fitness_array.push(self.fit_array[i] / accumulator);
+        }
+        shared_fitness_array
     }
 }

@@ -15,7 +15,7 @@ use population::Population;
 #[allow(dead_code)]
 pub fn wheel<T>(pop: &mut Population<T>) -> usize
     where T: Clone {
-    let fit_array = if pop.linear_scaling == true {pop.fit_array.clone()} else {pop.fitness_scaling()};
+    let fit_array = if pop.linear_scaling == false {pop.fit_array.clone()} else {pop.fitness_scaling()};
     let sum: f64 = fit_array.iter().fold(0.0, |a, &b| a + b);
     let roulete_position = Range::new(0.0, sum).ind_sample(&mut rand::thread_rng());
     let mut accumulator: f64 = 0.0;
@@ -33,7 +33,7 @@ pub fn wheel<T>(pop: &mut Population<T>) -> usize
 #[allow(dead_code)]
 pub fn tournament<T>(pop: &mut Population<T>) -> usize
     where T: Clone {
-    if pop.tournament_size > pop.pop_size {
+    if pop.tournament_size > pop.pop_size as u64 {
         println!("Error: The tournament size is bigger than the size of the population");
         process::exit(1);
     }

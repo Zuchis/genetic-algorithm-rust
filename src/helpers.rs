@@ -90,6 +90,14 @@ pub fn euclidean_distance<T>(v1: &Vec<T>, v2: &Vec<T>) -> T
     distance
 }
 
+pub fn manhattan_distance(v1: &Vec<i64>, v2: &Vec<i64>) -> i64 {
+    let mut distance: i64 = 0;
+    for i in 0 .. v1.len() {
+        distance += (v1[i] - v2[i]).abs();
+    }
+    distance
+}
+
 pub fn is_in<T>(value: &T, vec: &Vec<T>) -> (bool,usize)
     where T: PartialEq {
     for i in 0usize .. vec.len() {

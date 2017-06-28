@@ -105,6 +105,9 @@ fn main() {
                 "BIN_PARPS_FUNCTION" => fitness::bin_parps_function,
                 "BIN_RADIO_FACTORY" => fitness::bin_radio_factory,
                 "BIN_PATTERN_RECOGNITION" => fitness::bin_pattern_recognition,
+                "FULLY_DECEPTIVE_F3" => fitness::fully_deceptive_f3,
+                "FULLY_DECEPTIVE_F3S" => fitness::fully_deceptive_f3s,
+                "DECEPTIVE_N" => fitness::deceptive_n,
                 _          => {
                     println!("Not a valid fitness function");
                     process::exit(1);

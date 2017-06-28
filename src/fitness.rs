@@ -66,6 +66,87 @@ pub fn bin_pattern_recognition (ind: &Vec<bool>) -> f64 {
     36.0 - fit
 }
 
+pub fn fully_deceptive_f3 (ind: &Vec<bool>) -> f64 {
+    let mut fit: f64 = 0.0;
+
+    let values: Vec<f64> = vec![28.0, 26.0, 22.0, 0.0, 14.0, 0.0, 0.0, 30.0];
+
+    let mut i: usize = 0;
+
+    loop {
+        let mut block: Vec<bool> = Vec::new();
+        for j in 0usize .. 3 {
+            block.push(ind[i]);
+            i += 1;
+        }
+        let index: usize = helpers::bin_to_int(&block) as usize;
+        fit += values[index];
+        if i == (ind.len()) {
+            break;
+        }
+    }
+
+    fit / ((ind.len() / 3) as f64 * 30.0)
+}
+
+pub fn fully_deceptive_f3s (ind: &Vec<bool>) -> f64 {
+    let mut fit: f64 = 0.0;
+
+    let values: Vec<f64> = vec![28.0, 26.0, 22.0, 0.0, 14.0, 0.0, 0.0, 30.0];
+
+    let mut i: usize = 0;
+
+    let mut n: usize;
+
+    loop {
+        let mut block: Vec<bool> = Vec::new();
+        n = 0;
+        for j in 0usize .. 3 {
+            block.push(ind[i + (n * 10)]);
+            n += 1;
+        }
+        i += 1;
+        let index: usize = helpers::bin_to_int(&block) as usize;
+        fit += values[index];
+        if i == (ind.len() / 3) {
+            break;
+        }
+    }
+
+    fit / ((ind.len() / 3) as f64 * 30.0)
+}
+
+pub fn deceptive_n (ind: &Vec<bool>) -> f64 {
+    let mut fit: f64 = 0.0;
+
+    let n: usize = 4;
+
+    let mut i: usize = 0;
+
+    loop {
+        let mut ones: usize = 0;
+        for j in 0usize .. n {
+            if ind[i] == true {
+                ones += 1;
+            }
+            i += 1;
+        }
+        match ones {
+            0 => {
+                fit += (n + 1) as f64;
+            }
+            _ => {
+                fit += ones as f64;
+            }
+        }
+        if i == (ind.len()) {
+            break;
+        }
+    }
+
+    fit / ((ind.len() / 4) * (n + 1)) as f64
+}
+
 pub fn int_parity_alternate (ind: &Vec<i64>) -> f64 {
     let mut fit: f64 = 0.0;
     for i in 0 .. (ind.len() - 1) {
